@@ -138,3 +138,27 @@ test('cada participante ve su propio nombre en la sala y en la partida', async (
   await luis.context.close();
   await eva.context.close();
 });
+
+test('RF-001.22 el anfitrión quita a un participante con confirmación; la persona quitada lo ve explicado', async ({ page, browser }) => {
+  await page.goto(`${BASE}/`);
+  await page.locator('#create-name').fill('Ana');
+  await page.getByRole('button', { name: 'Crear sala' }).click();
+  await expect(heading(page, 'Sala de espera')).toBeVisible();
+  const code = await page.locator('#room-code').getAttribute('data-code');
+  const luis = await join(browser, code, 'Luis');
+  const eva = await join(browser, code, 'Eva');
+  await expect(luis.page.getByRole('button', { name: /^Quitar a/ })).toHaveCount(0); // solo el anfitrión
+
+  await page.getByRole('button', { name: 'Quitar a Eva de la sala' }).click();
+  await expect(page.getByRole('button', { name: 'Sí, quitar' })).toBeFocused();
+  await page.getByRole('button', { name: 'Cancelar' }).click();
+  await expect(page.locator('[data-testid="player"]')).toHaveCount(3);
+
+  await page.getByRole('button', { name: 'Quitar a Eva de la sala' }).click();
+  await page.getByRole('button', { name: 'Sí, quitar' }).click();
+  await expect(page.locator('[data-testid="player"]')).toHaveCount(2);
+  await expect(luis.page.locator('[data-testid="player"]')).toHaveCount(2, { timeout: 4_000 });
+  await expect(eva.page.locator('#fatal-message')).toContainText('el anfitrión te quitó', { timeout: 4_000 });
+  await luis.context.close();
+  await eva.context.close();
+});

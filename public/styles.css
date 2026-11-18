@@ -556,3 +556,11 @@ legend { font-weight: 700; margin-bottom: 0.6rem; padding: 0; }
 }
 .clue-history li { grid-template-columns: minmax(5rem, 9rem) 1fr; }
 .roles-status .btn[disabled] { opacity: 0.45; }
+
+/* Quitar participante (anfitrión, sala de espera) */
+.kick { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.kick-ask { color: var(--muted); }
+.kick-ask:hover { color: var(--danger); }
+.kick-ask.is-offline { color: var(--danger); border-color: rgba(255, 155, 155, 0.45); }
+.kick-question { font-size: 0.9rem; font-weight: 650; color: var(--danger); }
+.btn-primary:disabled, .btn-primary[aria-busy="true"] { background: var(--surface-2); color: var(--muted); opacity: 1; }

@@ -256,3 +256,36 @@ test('SPEC-FEAT-009 configuración por API: al crear, en la sala de espera, inv�
   assert.deepEqual([r.data.phase, r.data.series.current], ['roles', 2]);
   assert.ok(r.data.players.filter((p) => p.points === 1).length === 2, 'los dos inocentes ganaron 1 punto');
 });
+
+test('RF-001.22 el anfitrión quita a un integrante desconectado y desbloquea el inicio', async (t) => {
+  const s = await setup(t, ['Ana', 'Luis', 'Eva', 'Pablo']);
+  const ids = Object.fromEntries((await s.state('Ana')).players.map((p) => [p.name, p.id]));
+  // Eva cierra la pestaña: deja de consultar y queda desconectada.
+  s.time.now += 120_000;
+  for (const n of ['Ana', 'Luis', 'Pablo']) await s.state(n);
+  let view = await s.state('Ana');
+  assert.equal(view.canStart.ok, false, 'un desconectado bloquea el inicio');
+  assert.deepEqual(view.canStart.disconnected, ['Eva']);
+
+  let r = await s.act('Luis', 'kick', { playerId: ids.Eva });
+  assert.deepEqual([r.status, r.data.error.code], [403, 'NOT_HOST']);
+  r = await s.act('Ana', 'kick', { playerId: ids.Ana });
+  assert.deepEqual([r.status, r.data.error.code], [400, 'INVALID_TARGET']);
+
+  r = await s.act('Ana', 'kick', { playerId: ids.Eva });
+  assert.equal(r.status, 200, r.text);
+  assert.deepEqual(r.data.players.map((p) => p.name), ['Ana', 'Luis', 'Pablo']);
+  assert.equal(r.data.canStart.ok, true, 'ya se puede iniciar');
+  r = await s.act('Ana', 'kick', { playerId: ids.Eva });
+  assert.equal(r.status, 200, 'repetir no falla');
+
+  // La sesión de Eva ya no vale, pero puede volver a unirse con el código.
+  const gone = await s.call('GET', `/api/state?code=${s.code}`, undefined, s.players.Eva);
+  assert.equal(gone.status, 401);
+  const back = await s.call('POST', '/api/join', { code: s.code, name: 'Eva' });
+  assert.equal(back.status, 201, back.text);
+
+  await s.act('Ana', 'start');
+  r = await s.act('Ana', 'kick', { playerId: ids.Luis });
+  assert.deepEqual([r.status, r.data.error.code], [409, 'WRONG_PHASE'], 'no se quita a nadie en plena partida');
+});

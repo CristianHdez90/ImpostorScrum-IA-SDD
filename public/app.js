@@ -78,6 +78,7 @@
     tableKey: '',
     podiumKey: '',
     seriesAnnounced: null,
+    kickTarget: null, // participante que el anfitrión está por quitar (confirmación)
     cardSeen: false, // la carta se abrió al menos una vez en esta partida
   };
 
@@ -460,7 +461,7 @@
     $('player-count').textContent = '(' + dto.capacity.count + ' de ' + dto.capacity.max + ')';
     $('words-label').textContent = dto.words.label;
     $('words-count').textContent = String(dto.words.count);
-    renderPlayers(dto.players);
+    renderPlayers(dto.players, dto.me.isHost && dto.phase === 'lobby');
     renderRequirement(dto);
     var isHost = dto.me.isHost;
     var start = $('start-game');
@@ -471,8 +472,9 @@
     renderSettings(dto);
   }
 
-  function renderPlayers(players) {
-    var key = JSON.stringify(players);
+  function renderPlayers(players, canKick) {
+    if (state.kickTarget && !players.some(function (p) { return p.id === state.kickTarget; })) state.kickTarget = null;
+    var key = JSON.stringify([players, canKick, state.kickTarget]);
     if (key === state.playersKey) return; // actualización localizada
     state.playersKey = key;
     var list = $('player-list');
@@ -485,6 +487,7 @@
       if (p.isHost) li.appendChild(badge('badge-host', '★', 'Anfitrión'));
       if (p.isMe) li.appendChild(badge('badge-me', '', 'Tú'));
       li.appendChild(p.connected ? badge('badge-online', '●', 'Conectado') : badge('badge-offline', '○', 'Desconectado'));
+      if (canKick && !p.isMe) li.appendChild(kickControls(p));
       list.appendChild(li);
     });
     var ids = players.map(function (p) { return p.id; });
@@ -494,6 +497,48 @@
       });
     }
     state.knownIds = ids;
+  }
+
+  /** «Quitar» con confirmación en un paso; el foco se mantiene en el control (RF-001.22). */
+  function kickControls(p) {
+    var box = el('span', 'kick');
+    if (state.kickTarget !== p.id) {
+      var ask = el('button', 'btn btn-ghost btn-small kick-ask' + (p.connected ? '' : ' is-offline'), 'Quitar');
+      ask.type = 'button';
+      ask.setAttribute('aria-label', 'Quitar a ' + p.name + ' de la sala');
+      ask.setAttribute('data-kick', p.id);
+      ask.addEventListener('click', function () {
+        state.kickTarget = p.id;
+        state.playersKey = '';
+        renderPlayers(state.lastDto.players, true);
+        var yes = document.querySelector('[data-kick-confirm="' + p.id + '"]');
+        if (yes) yes.focus();
+      });
+      box.appendChild(ask);
+      return box;
+    }
+    box.appendChild(el('span', 'kick-question', '¿Quitar a ' + p.name + '?'));
+    var yes = el('button', 'btn btn-danger btn-small', 'Sí, quitar');
+    yes.type = 'button';
+    yes.setAttribute('data-kick-confirm', p.id);
+    yes.addEventListener('click', function () {
+      sendAction('kick', { playerId: p.id }, {
+        button: yes,
+        onSuccess: function () { state.kickTarget = null; announce(p.name + ' ya no está en la sala.'); },
+      });
+    });
+    var no = el('button', 'btn btn-secondary btn-small', 'Cancelar');
+    no.type = 'button';
+    no.addEventListener('click', function () {
+      state.kickTarget = null;
+      state.playersKey = '';
+      renderPlayers(state.lastDto.players, true);
+      var again = document.querySelector('[data-kick="' + p.id + '"]');
+      if (again) again.focus();
+    });
+    box.appendChild(yes);
+    box.appendChild(no);
+    return box;
   }
 
   function badge(className, icon, text) {
@@ -628,7 +673,8 @@
         ? 'Falta 1 participante para iniciar (mínimo ' + dto.capacity.min + ').'
         : 'Faltan ' + c.missingPlayers + ' participantes para iniciar (mínimo ' + dto.capacity.min + ').';
     } else if (c.disconnected.length > 0) {
-      text = 'Esperando la conexión de: ' + c.disconnected.join(', ') + '.';
+      text = 'Esperando la conexión de: ' + c.disconnected.join(', ') + '.'
+        + (dto.me.isHost ? ' Si no va a volver, usa «Quitar» junto a su nombre.' : '');
     } else {
       text = dto.me.isHost ? 'Todo listo: ya puedes iniciar la partida.' : 'Hay suficientes participantes conectados para jugar.';
     }
@@ -1326,7 +1372,16 @@
       try { applyRoom(JSON.parse(event.data)); } catch (e) { /* mensaje ilegible: se ignora */ }
     };
     es.addEventListener('gone', function () {
-      if (generation === state.generation) fatal('gone');
+      if (generation !== state.generation) return;
+      // La sala puede seguir existiendo (el anfitrión nos quitó): preguntar para explicar bien.
+      var code = state.code;
+      stopSync();
+      fetchState(code).then(function (r) {
+        if (generation !== state.generation) return;
+        if (r.kind === 'ok') { enterRoom(r.dto); return; }
+        if (r.kind === 'unavailable') { startSse(); return; }
+        fatal(r.kind === 'session' ? 'session' : 'gone');
+      });
     });
     es.onerror = function () {
       if (generation !== state.generation) return;
@@ -1352,7 +1407,7 @@
     state.code = null;
     state.phase = null;
     $('fatal-message').textContent = kind === 'session'
-      ? 'Tu sesión en esta sala ya no es válida. Puedes volver a unirte con el código.'
+      ? 'Tu sesión ya no pertenece a esta sala: saliste, se borraron los datos del navegador o el anfitrión te quitó. Puedes volver a unirte con el código.'
       : 'Esta sala expiró o ya no existe. Crea una sala nueva o pide un código nuevo.';
     showView('fatal');
   }

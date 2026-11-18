@@ -45,6 +45,7 @@
 | T-022 | RF-009.03–07: serie de rondas, pausa de 20 s, «Continuar», puntos, podio con empates, serie cortada | Dominio/API/E2E | 009 |
 | T-023 | RF-009.08: reiniciar borra puntos y conserva la configuración | Dominio/E2E | 009 |
 | T-024 | RF-010.01: carta con giro 3D; la palabra no está en el DOM oculta; sin giro con movimiento reducido | E2E/CSS | 010 |
+| T-026 | RF-001.22: el anfitrión quita a un participante; desbloquea el inicio; permisos, fase e idempotencia | API/E2E | 001 |
 | T-025 | RF-010.02–06: iconos, avatares, mesa con «En turno», barra «Ronda X de N» + «Vuelta k», podio | E2E/revisión visual | 010 |
 
 
@@ -66,7 +67,7 @@
 | Suite | Archivos | Resultado | Entorno |
 |---|---|---|---|
 | Dominio, API e integración | `tests/unit/series.test.js` (nuevo), `tests/integration/api-full.test.js`, `tests/unit/room.test.js` (LIMITS con `settingsOptions`) | **97/97** | Entorno en la nube de la sesión, Node 22; memoria y Redis simulado |
-| E2E | `tests/e2e/series.spec.js` (nuevo) + `game.spec.js` (empate ahora comprueba `#lap-label` «Vuelta 2») | **50/50** (25 escritorio + 25 móvil; incluye «cada participante ve su nombre») | Entorno en la nube de la sesión, Chrome del sistema |
+| E2E | `tests/e2e/series.spec.js` (nuevo) + `game.spec.js` (empate ahora comprueba `#lap-label` «Vuelta 2») | **52/52** (26 escritorio + 26 móvil; incluye nombre propio y quitar participante); `npm test` **98/98** | Entorno en la nube de la sesión, Chrome del sistema |
 | Lint | ESLint | Sin errores | Igual |
 | Revisión visual | Capturas de inicio, sala de espera, carta, pistas con la mesa, pausa entre rondas y podio (escritorio y móvil) | Revisadas; se corrigieron alineaciones, colores de avatar y espaciado | Igual |
 | Corrección encontrada | La portada mostraba «Retro», que es palabra del grupo Scrum: el impostor la veía en la página. Se cambió por «?» | Corregido | — |

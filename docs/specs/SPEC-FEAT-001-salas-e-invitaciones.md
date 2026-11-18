@@ -238,6 +238,10 @@ Característica: Crear sala privada y unirse
 | TEST-001-26 | CA-16 | E2E/DOM | Cadenas XSS | Texto literal, sin ejecución |
 | TEST-001-27 | CA-17 | Manual + axe | Teclado, NVDA/VoiceOver, 320 px | Sin violaciones críticas; recorrido completo |
 
+### Ampliación (2026-11-18, pedido de CristianDev)
+
+- **RF-001.22** En la sala de espera, el anfitrión puede quitar a otro participante (por ejemplo, alguien que se desconectó por accidente y bloquea el inicio). Pide confirmación en un paso, no se puede quitar a sí mismo (`INVALID_TARGET`), solo el anfitrión (`NOT_HOST`) y solo en la sala de espera (`WRONG_PHASE`). Repetirlo no falla. La persona quitada ve que su sesión ya no pertenece a la sala y puede volver a unirse con el código.
+
 ## 03. Restricciones
 
 - Respetar la Constitución (una vez ratificada) y los ADR aprobados.
