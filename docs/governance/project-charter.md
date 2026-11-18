@@ -67,7 +67,20 @@
 | G3 | **Autorizado para SPEC-FEAT-001 v0.2.0** | APR-015 | Resto de SPECS |
 | G4 | **SPEC-FEAT-001 construida** en la carpeta, sin Git (APR-014) | Inventario §07 | Revisión del responsable |
 | G5 | **Parcial para SPEC-FEAT-001** | Evidencia en SPEC-001 §08 | Upstash real, lector de pantalla, contraste renderizado |
-| G6–G7 | **No iniciados** | — | Autorizaciones independientes |
+| G6 | **Cumplido** — despliegue en Production | APR-020 | — |
+| G7 | **Cumplido** — smoke en Production y cierre | APR-021 | Pendientes en §5 |
+
+## 5. Deuda y pendientes al cierre del MVP (2026-11-18)
+
+| Pendiente | Tipo | Referencia |
+|---|---|---|
+| Confirmar las decisiones aplicadas por propuesta (D-12, D-13, D-16, D-17, D-20, D-22, D-25, D-27, D-30) y la regla de la «ñ» | Decisión | APR-018, [open-decisions.md](open-decisions.md) |
+| Revisión con lector de pantalla y medición de contraste renderizado; tiempo ampliado por WCAG 2.2.1 (SPEC-FEAT-009) | Accesibilidad | D-14, [accessibility.md](../ux/accessibility.md) |
+| Proteger `main` en GitHub (PR obligatorio y CI en verde) | Proceso | Constitución, Art. IX |
+| Usar Preview antes de Production en los próximos cambios | Proceso | [deployment-and-rollback.md](../operations/deployment-and-rollback.md) |
+| Revisar límites y costos del plan de Upstash y Vercel con uso real; acordar alertas | Operación | D-07, ADR-0003 |
+| Objetivos medibles de producto | Producto | D-06, [vision.md](../product/vision.md) |
+| Aceptar `KV_REST_API_*` como alternativa a `UPSTASH_*` (opcional) | Mejora | Sin SPEC |
 
 ## 4. Inventario de entregables de esta sesión
 

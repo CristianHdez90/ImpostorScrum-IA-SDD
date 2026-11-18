@@ -227,3 +227,32 @@ test('RF-008T.06 límite de creación por IP: 429 con Retry-After', async (t) =>
   time.now += 3600 * 1000 + 1;
   assert.equal((await call('POST', '/api/create', { name: 'Ana 12' })).status, 201, 'la ventana se renueva');
 });
+
+test('SPEC-FEAT-009 configuración por API: al crear, en la sala de espera, inválida y «Continuar»', async (t) => {
+  const s = await setup(t);
+  let r = await s.act('Ana', 'settings', { rounds: 2, turnSeconds: 30, voteSeconds: 90 });
+  assert.deepEqual(r.data.settings, { rounds: 2, turnSeconds: 30, voteSeconds: 90 });
+  assert.deepEqual((await s.state('Luis')).settings, { rounds: 2, turnSeconds: 30, voteSeconds: 90 }, 'todos ven la configuración');
+  r = await s.act('Ana', 'settings', { turnSeconds: 7 });
+  assert.deepEqual([r.status, r.data.error.code], [400, 'INVALID_SETTINGS']);
+  r = await s.act('Luis', 'settings', { rounds: 3 });
+  assert.deepEqual([r.status, r.data.error.code], [403, 'NOT_HOST']);
+  const created = await s.call('POST', '/api/create', { name: 'Otra', settings: { rounds: 5 } });
+  assert.deepEqual(created.data.settings, { rounds: 5, turnSeconds: 60, voteSeconds: 75 });
+
+  const { impostor, ids } = await playToVote(s);
+  assert.equal((await s.state('Ana')).series.total, 2);
+  for (const n of s.names) {
+    const target = n === impostor ? ids[s.names.find((x) => x !== impostor && x !== n)] : ids[impostor];
+    await s.act(n, 'vote', { targetId: target });
+  }
+  await s.act(impostor, 'guess', { text: 'nada que ver' });
+  const end = await s.state('Luis');
+  assert.deepEqual([end.phase, end.result.hasNextRound, end.series.current], ['finished', true, 1]);
+  assert.equal(end.deadline, s.time.now + 20_000, 'la siguiente ronda empieza sola en 20 s');
+  assert.equal((await s.act('Ana', 'playAgain')).data.error.code, 'WRONG_PHASE', 'la serie no terminó');
+  assert.equal((await s.act('Luis', 'nextGame')).data.error.code, 'NOT_HOST');
+  r = await s.act('Ana', 'nextGame');
+  assert.deepEqual([r.data.phase, r.data.series.current], ['roles', 2]);
+  assert.ok(r.data.players.filter((p) => p.points === 1).length === 2, 'los dos inocentes ganaron 1 punto');
+});

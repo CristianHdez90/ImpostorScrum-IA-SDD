@@ -29,6 +29,14 @@ Para usar un archivo `.env` (copia de [`.env.example`](.env.example)), cárgalo 
 
 Un QR generado desde `localhost` no sirve en otro dispositivo. Arranca con `HOST=0.0.0.0 npm start`, abre la aplicación en el ordenador con la IP de tu red que muestra la consola (por ejemplo `http://192.168.1.20:3000`) y escanea el QR. Es solo para desarrollo: por HTTP la cookie no lleva `Secure`.
 
+## Configuración de la partida
+
+Al crear la sala (y después, en la sala de espera, solo el anfitrión) se eligen:
+
+- **Rondas:** de 1 a 10. Cada ronda es una partida completa con nueva palabra e impostor; entre rondas hay una pausa de 20 s o el anfitrión pulsa «Continuar». Cada ganador suma 1 punto y al final se muestra un podio.
+- **Tiempo por turno:** 30, 45, 60, 90 o 120 s.
+- **Tiempo de votación:** 45, 60, 75, 90 o 120 s.
+
 ## Pruebas
 
 ```bash

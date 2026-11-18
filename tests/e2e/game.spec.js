@@ -113,7 +113,7 @@ test('empate: nadie es señalado, la identidad sigue oculta y el anfitrión inic
   await page.getByRole('button', { name: 'Siguiente ronda' }).click();
   for (const p of Object.values(game.players)) {
     await expect(heading(p, 'Ronda de pistas')).toBeVisible({ timeout: 4_000 });
-    await expect(p.locator('#round-label')).toHaveText('Ronda 2');
+    await expect(p.locator('#lap-label')).toHaveText('Vuelta 2');
   }
   for (const c of game.contexts) await c.close();
 });

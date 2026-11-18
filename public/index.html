@@ -9,8 +9,32 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  <!-- Iconos propios (SPEC-FEAT-010). Siempre acompañan a un texto; el icono es decorativo. -->
+  <svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-mask" viewBox="0 0 24 24"><path d="M3 8c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2c0 6-3 9.5-6 9.5-1.7 0-2.2-2.2-3-2.2s-1.3 2.2-3 2.2c-3 0-6-3.5-6-9.5z"/><path d="M7 10.5c.8-.7 2.2-.7 3 0M14 10.5c.8-.7 2.2-.7 3 0"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 13.6c2.9.3 5 2.7 5 5.9"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 10H5z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M12 8.5l2.5 3.5-2.5 3.5-2.5-3.5z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L4 20z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+    <symbol id="i-vote" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V4h8v7"/><path d="M10 7.5l1.5 1.5L14 6"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4v3h-4z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></symbol>
+    <symbol id="i-exit" viewBox="0 0 24 24"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM18 5v14"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/><path d="M11 13l9-9"/></symbol>
+    <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
+  </svg>
+
   <header class="topbar">
-    <p class="brand"><span aria-hidden="true">🕵️</span> Farsante Scrum</p>
+    <p class="brand"><svg class="icon brand-icon" aria-hidden="true"><use href="#i-mask"/></svg> Farsante Scrum</p>
     <p id="connection" class="connection" hidden>
       <span class="dot" aria-hidden="true"></span><span id="connection-text">Conectado</span>
     </p>
@@ -22,19 +46,27 @@
   <main id="main">
     <p id="action-error" class="alert alert-error" role="alert" hidden></p>
     <div id="phase-bar" class="phase-bar" hidden>
-      <span id="phase-label"></span>
-      <span id="round-label"></span>
-      <span id="timer-wrap">Tiempo: <span id="phase-timer" class="timer">00:00</span></span>
+      <span class="phase-chip"><svg class="icon" aria-hidden="true"><use id="phase-icon" href="#i-card"/></svg><span id="phase-label"></span></span>
+      <span id="round-label" class="phase-meta"></span>
+      <span id="lap-label" class="phase-meta"></span>
+      <span id="timer-wrap" class="phase-timer"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>Tiempo: <span id="phase-timer" class="timer">00:00</span></span>
     </div>
 
     <!-- Inicio -->
     <section id="view-home" class="view" aria-labelledby="home-title" hidden>
-      <h1 id="home-title" tabindex="-1">Farsante Scrum</h1>
-      <p class="lead">Todos reciben la misma palabra, menos uno: el farsante (impostor). Den pistas, debatan y voten para descubrirlo.</p>
+      <div class="hero">
+        <div class="hero-cards" aria-hidden="true">
+          <span class="mini-card mini-card-back"><svg class="icon"><use href="#i-mask"/></svg></span>
+          <span class="mini-card mini-card-front">?</span>
+          <span class="mini-card mini-card-front">?</span>
+        </div>
+        <h1 id="home-title" tabindex="-1">Farsante Scrum</h1>
+        <p class="lead">Todos reciben la misma palabra, menos uno: el farsante (impostor). Den pistas, debatan y voten para descubrirlo.</p>
+      </div>
 
       <div class="grid-2">
         <form id="create-form" class="card" novalidate>
-          <h2>Crear sala</h2>
+          <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-crown"/></svg>Crear sala</h2>
           <div class="field">
             <label for="create-name">Tu nombre</label>
             <input id="create-name" name="name" type="text" autocomplete="nickname" aria-describedby="create-name-help create-name-error" required>
@@ -49,17 +81,34 @@
               <option value="musica">Música</option>
               <option value="tecnologia">Tecnología e IA</option>
             </select>
-            <p class="help">Podrás editar las palabras en la sala de espera.</p>
           </div>
+          <fieldset class="settings-fieldset">
+            <legend>Configuración de la partida</legend>
+            <div class="settings-grid">
+              <div class="field">
+                <label for="create-rounds">Rondas</label>
+                <select id="create-rounds" data-setting="rounds"></select>
+              </div>
+              <div class="field">
+                <label for="create-turn">Tiempo por turno</label>
+                <select id="create-turn" data-setting="turnSeconds"></select>
+              </div>
+              <div class="field">
+                <label for="create-vote">Tiempo de votación</label>
+                <select id="create-vote" data-setting="voteSeconds"></select>
+              </div>
+            </div>
+            <p class="help">Podrás cambiar las palabras y la configuración en la sala de espera.</p>
+          </fieldset>
           <p id="create-error" class="alert alert-error" role="alert" hidden></p>
-          <button type="submit" class="btn btn-primary">Crear sala</button>
+          <button type="submit" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Crear sala</button>
         </form>
 
         <form id="join-form" class="card" novalidate>
-          <h2>Unirse a una sala</h2>
+          <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>Unirse a una sala</h2>
           <div class="field">
             <label for="join-code">Código de sala</label>
-            <input id="join-code" name="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" aria-describedby="join-code-help join-code-error" required>
+            <input id="join-code" name="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" class="code-input" aria-describedby="join-code-help join-code-error" required>
             <p id="join-code-help" class="help">Cinco letras, sin I ni O.</p>
             <p id="join-code-error" class="field-error" hidden></p>
           </div>
@@ -83,10 +132,10 @@
         Ya estás en la sala <strong id="invite-other-code"></strong>.
         <button type="button" id="back-to-room" class="btn-link">Volver a la sala <span id="invite-other-code-2"></span></button>
       </p>
-      <form id="invite-form" class="card" novalidate>
+      <form id="invite-form" class="card narrow" novalidate>
         <div class="field">
           <label for="invite-code">Código de sala</label>
-          <input id="invite-code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" aria-describedby="invite-code-error" required>
+          <input id="invite-code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" class="code-input" aria-describedby="invite-code-error" required>
           <p id="invite-code-error" class="field-error" hidden></p>
         </div>
         <div class="field">
@@ -96,7 +145,7 @@
           <p id="invite-name-error" class="field-error" hidden></p>
         </div>
         <p id="invite-error" class="alert alert-error" role="alert" hidden></p>
-        <button type="submit" class="btn btn-primary">Unirme al juego</button>
+        <button type="submit" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Unirme al juego</button>
       </form>
       <p><a href="/" id="invite-home-link">Ir al inicio</a></p>
     </section>
@@ -108,17 +157,40 @@
       <div class="lobby-layout">
         <div class="lobby-main">
           <div class="card">
-            <h2 class="card-title">Participantes <span id="player-count" class="count"></span></h2>
+            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>Participantes <span id="player-count" class="count"></span></h2>
             <ul id="player-list" class="player-list"></ul>
             <p id="lobby-requirement" class="requirement"></p>
             <div class="start-area">
-              <button type="button" id="start-game" class="btn btn-primary" aria-describedby="lobby-requirement" hidden>Iniciar partida</button>
+              <button type="button" id="start-game" class="btn btn-primary btn-large" aria-describedby="lobby-requirement" hidden><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Iniciar partida</button>
               <p id="waiting-host" class="help" hidden>Esperando a que el anfitrión inicie la partida.</p>
             </div>
           </div>
 
+          <div class="card" id="settings-card">
+            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Configuración</h2>
+            <p id="settings-summary" class="summary-line"></p>
+            <form id="settings-form" novalidate hidden>
+              <div class="settings-grid">
+                <div class="field">
+                  <label for="settings-rounds">Rondas</label>
+                  <select id="settings-rounds" data-setting="rounds"></select>
+                </div>
+                <div class="field">
+                  <label for="settings-turn">Tiempo por turno</label>
+                  <select id="settings-turn" data-setting="turnSeconds"></select>
+                </div>
+                <div class="field">
+                  <label for="settings-vote">Tiempo de votación</label>
+                  <select id="settings-vote" data-setting="voteSeconds"></select>
+                </div>
+              </div>
+              <p id="settings-draft" class="draft-note" hidden>Cambios sin guardar</p>
+              <button type="submit" class="btn btn-secondary"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Guardar configuración</button>
+            </form>
+          </div>
+
           <div class="card" id="words-card">
-            <h2 class="card-title">Palabras</h2>
+            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg>Palabras</h2>
             <p class="help">Grupo guardado: <strong id="words-label"></strong> (<span id="words-count"></span> palabras).</p>
             <form id="words-form" novalidate hidden>
               <div class="field">
@@ -133,26 +205,26 @@
               </div>
               <div class="field">
                 <label for="words-text">Palabras, una por línea</label>
-                <textarea id="words-text" rows="10" spellcheck="false" aria-describedby="words-help words-text-error"></textarea>
+                <textarea id="words-text" rows="8" spellcheck="false" aria-describedby="words-help words-text-error"></textarea>
                 <p id="words-help" class="help">Entre 3 y 100 palabras distintas, de 2 a 55 caracteres cada una.</p>
                 <p id="words-text-error" class="field-error" hidden></p>
               </div>
               <p id="words-draft" class="draft-note" hidden>Cambios sin guardar</p>
-              <button type="submit" class="btn btn-secondary">Guardar palabras</button>
+              <button type="submit" class="btn btn-secondary"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Guardar palabras</button>
             </form>
           </div>
-          <button type="button" id="leave-lobby" class="btn btn-secondary">Salir de la sala</button>
+          <button type="button" id="leave-lobby" class="btn btn-ghost"><svg class="icon" aria-hidden="true"><use href="#i-exit"/></svg>Salir de la sala</button>
         </div>
 
         <aside class="lobby-share card" aria-labelledby="share-title">
-          <h2 id="share-title" class="card-title">Invitar</h2>
+          <h2 id="share-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-link"/></svg>Invitar</h2>
           <p class="code-label">Código de sala</p>
           <p id="room-code" class="room-code"></p>
           <div class="field">
             <label for="invite-link">Enlace de invitación</label>
             <div class="inline">
               <input id="invite-link" type="text" readonly>
-              <button type="button" id="copy-link" class="btn btn-secondary">Copiar enlace</button>
+              <button type="button" id="copy-link" class="btn btn-secondary"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg>Copiar enlace</button>
             </div>
             <p id="copy-feedback" class="help" hidden></p>
           </div>
@@ -169,140 +241,173 @@
       </div>
     </section>
 
-    <!-- Roles -->
-    <section id="view-roles" class="view" aria-labelledby="roles-title" hidden>
-      <h1 id="roles-title" tabindex="-1">Tu carta</h1>
-      <p class="alert alert-warning">Si compartes pantalla, deja de compartir antes de ver tu carta.</p>
-      <div class="card roles-status">
-        <p id="ready-count" class="requirement"></p>
-        <button type="button" id="ready-btn" class="btn btn-primary">Ya vi mi rol, estoy listo</button>
-      </div>
-    </section>
-
-    <!-- Pistas -->
-    <section id="view-clues" class="view" aria-labelledby="clues-title" hidden>
-      <h1 id="clues-title" tabindex="-1">Ronda de pistas</h1>
-      <div class="card">
-        <p id="turn-info" class="requirement"></p>
-        <p id="turn-order" class="help"></p>
-        <form id="clue-form" novalidate hidden>
-          <div class="field">
-            <label for="clue-text">Tu pista</label>
-            <input id="clue-text" type="text" autocomplete="off" aria-describedby="clue-help clue-text-error">
-            <p id="clue-help" class="help">Palabra o frase, hasta 160 caracteres. <span id="clue-counter"></span></p>
-            <p id="clue-text-error" class="field-error" hidden></p>
+    <!-- Partida: la vista de la fase a la izquierda; carta, mesa y pistas a la derecha en pantallas anchas -->
+    <div id="game-layout" class="game-layout">
+      <div class="game-main">
+        <!-- Roles -->
+        <section id="view-roles" class="view" aria-labelledby="roles-title" hidden>
+          <h1 id="roles-title" tabindex="-1">Tu carta</h1>
+          <p class="alert alert-warning">Si compartes pantalla, deja de compartir antes de ver tu carta.</p>
+          <div class="card roles-status">
+            <p id="ready-count" class="requirement"></p>
+            <button type="button" id="ready-btn" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Ya vi mi rol, estoy listo</button>
           </div>
-          <button type="submit" class="btn btn-primary">Enviar pista</button>
-        </form>
-        <button type="button" id="skip-turn" class="btn btn-secondary" hidden>Saltar turno</button>
-      </div>
-    </section>
+        </section>
 
-    <!-- Debate -->
-    <section id="view-discussion" class="view" aria-labelledby="discussion-title" hidden>
-      <h1 id="discussion-title" tabindex="-1">Debate</h1>
-      <div class="card">
-        <p class="lead">Comenten las pistas y decidan quién creen que es el impostor.</p>
-        <button type="button" id="open-voting" class="btn btn-primary" hidden>Abrir votación</button>
-        <p id="discussion-wait" class="help">La votación se abre al terminar el tiempo o cuando el anfitrión la abra.</p>
-      </div>
-    </section>
-
-    <!-- Votación -->
-    <section id="view-vote" class="view" aria-labelledby="vote-title" hidden>
-      <h1 id="vote-title" tabindex="-1">Votación secreta</h1>
-      <div class="card">
-        <p id="vote-progress" class="requirement"></p>
-        <form id="vote-form" novalidate>
-          <fieldset>
-            <legend>¿Quién es el impostor?</legend>
-            <div id="vote-options" class="vote-options"></div>
-          </fieldset>
-          <p id="vote-form-error" class="field-error" hidden></p>
-          <button type="submit" class="btn btn-primary">Confirmar voto</button>
-          <p class="help">Tu voto es secreto y no se puede cambiar.</p>
-        </form>
-        <p id="vote-done" class="alert alert-info" hidden>Tu voto quedó registrado. Es secreto: nadie más lo ve.</p>
-        <button type="button" id="close-vote" class="btn btn-secondary" aria-describedby="close-vote-help" hidden>Cerrar votación</button>
-        <p id="close-vote-help" class="help" hidden></p>
-      </div>
-    </section>
-
-    <!-- Resultado sin resolución -->
-    <section id="view-reveal" class="view" aria-labelledby="reveal-title" hidden>
-      <h1 id="reveal-title" tabindex="-1">Nadie fue señalado</h1>
-      <div class="card">
-        <p id="reveal-reason" class="lead"></p>
-        <ul id="reveal-tally" class="tally"></ul>
-        <p class="help">La identidad del impostor sigue oculta. La siguiente ronda de pistas empieza en breve.</p>
-        <button type="button" id="next-round" class="btn btn-primary" hidden>Siguiente ronda</button>
-      </div>
-    </section>
-
-    <!-- Adivinanza -->
-    <section id="view-guess" class="view" aria-labelledby="guess-title" hidden>
-      <h1 id="guess-title" tabindex="-1">¡Descubrieron al impostor!</h1>
-      <div class="card">
-        <p id="guess-info" class="lead"></p>
-        <form id="guess-form" novalidate hidden>
-          <div class="field">
-            <label for="guess-text">Tu respuesta</label>
-            <input id="guess-text" type="text" autocomplete="off" aria-describedby="guess-help guess-text-error">
-            <p id="guess-help" class="help">Si aciertas la palabra secreta, ganas.</p>
-            <p id="guess-text-error" class="field-error" hidden></p>
+        <!-- Pistas -->
+        <section id="view-clues" class="view" aria-labelledby="clues-title" hidden>
+          <h1 id="clues-title" tabindex="-1">Ronda de pistas</h1>
+          <div class="card">
+            <p id="turn-info" class="requirement turn-info"></p>
+            <p id="turn-order" class="help"></p>
+            <form id="clue-form" novalidate hidden>
+              <div class="field">
+                <label for="clue-text">Tu pista</label>
+                <input id="clue-text" type="text" autocomplete="off" aria-describedby="clue-help clue-text-error">
+                <p id="clue-help" class="help">Palabra o frase, hasta 160 caracteres. <span id="clue-counter"></span></p>
+                <p id="clue-text-error" class="field-error" hidden></p>
+              </div>
+              <button type="submit" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-send"/></svg>Enviar pista</button>
+            </form>
+            <button type="button" id="skip-turn" class="btn btn-secondary" hidden><svg class="icon" aria-hidden="true"><use href="#i-skip"/></svg>Saltar turno</button>
           </div>
-          <button type="submit" class="btn btn-primary">Adivinar la palabra</button>
-        </form>
-        <p id="guess-wait" class="help" hidden></p>
-      </div>
-    </section>
+        </section>
 
-    <!-- Final -->
-    <section id="view-finished" class="view" aria-labelledby="finished-title" hidden>
-      <h1 id="finished-title" tabindex="-1">Fin de la partida</h1>
-      <div class="card result-card">
-        <div id="finished-summary" class="summary"></div>
-        <h2 class="card-title">Votos</h2>
-        <ul id="finished-tally" class="tally"></ul>
+        <!-- Debate -->
+        <section id="view-discussion" class="view" aria-labelledby="discussion-title" hidden>
+          <h1 id="discussion-title" tabindex="-1">Debate</h1>
+          <div class="card">
+            <p class="lead">Comenten las pistas y decidan quién creen que es el impostor.</p>
+            <button type="button" id="open-voting" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-vote"/></svg>Abrir votación</button>
+            <p id="discussion-wait" class="help">La votación se abre al terminar el tiempo o cuando el anfitrión la abra.</p>
+          </div>
+        </section>
+
+        <!-- Votación -->
+        <section id="view-vote" class="view" aria-labelledby="vote-title" hidden>
+          <h1 id="vote-title" tabindex="-1">Votación secreta</h1>
+          <div class="card">
+            <p id="vote-progress" class="requirement"></p>
+            <form id="vote-form" novalidate>
+              <fieldset>
+                <legend>¿Quién es el impostor?</legend>
+                <div id="vote-options" class="vote-options"></div>
+              </fieldset>
+              <p id="vote-form-error" class="field-error" hidden></p>
+              <button type="submit" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-vote"/></svg>Confirmar voto</button>
+              <p class="help">Tu voto es secreto y no se puede cambiar.</p>
+            </form>
+            <p id="vote-done" class="alert alert-info" hidden>Tu voto quedó registrado. Es secreto: nadie más lo ve.</p>
+            <button type="button" id="close-vote" class="btn btn-secondary" aria-describedby="close-vote-help" hidden>Cerrar votación</button>
+            <p id="close-vote-help" class="help" hidden></p>
+          </div>
+        </section>
+
+        <!-- Resultado sin resolución -->
+        <section id="view-reveal" class="view" aria-labelledby="reveal-title" hidden>
+          <h1 id="reveal-title" tabindex="-1">Nadie fue señalado</h1>
+          <div class="card">
+            <p id="reveal-reason" class="lead"></p>
+            <ul id="reveal-tally" class="tally"></ul>
+            <p class="help">La identidad del impostor sigue oculta. Habrá otra vuelta de pistas en breve.</p>
+            <button type="button" id="next-round" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Siguiente ronda</button>
+          </div>
+        </section>
+
+        <!-- Adivinanza -->
+        <section id="view-guess" class="view" aria-labelledby="guess-title" hidden>
+          <h1 id="guess-title" tabindex="-1">¡Descubrieron al impostor!</h1>
+          <div class="card">
+            <p id="guess-info" class="lead"></p>
+            <form id="guess-form" novalidate hidden>
+              <div class="field">
+                <label for="guess-text">Tu respuesta</label>
+                <input id="guess-text" type="text" autocomplete="off" aria-describedby="guess-help guess-text-error">
+                <p id="guess-help" class="help">Si aciertas la palabra secreta, ganas.</p>
+                <p id="guess-text-error" class="field-error" hidden></p>
+              </div>
+              <button type="submit" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-question"/></svg>Adivinar la palabra</button>
+            </form>
+            <p id="guess-wait" class="help" hidden></p>
+          </div>
+        </section>
+
+        <!-- Final de ronda y podio -->
+        <section id="view-finished" class="view" aria-labelledby="finished-title" hidden>
+          <p id="finished-round" class="eyebrow-round"></p>
+          <h1 id="finished-title" tabindex="-1">Fin de la partida</h1>
+          <div class="card result-card">
+            <div id="finished-summary" class="summary"></div>
+            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-vote"/></svg>Votos</h2>
+            <ul id="finished-tally" class="tally"></ul>
+          </div>
+          <div class="card reflection-card">
+            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Para conversar</h2>
+            <p id="reflection-text" class="lead"></p>
+            <p id="reflection-question" class="reflection-question"></p>
+          </div>
+
+          <div id="next-round-area" class="card next-round-card" hidden>
+            <p class="requirement"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>La siguiente ronda empieza en <span id="next-round-timer" class="timer">00:20</span>.</p>
+            <button type="button" id="next-game" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Continuar</button>
+          </div>
+
+          <section id="podium-area" class="podium-area" aria-labelledby="podium-title" hidden>
+            <h2 id="podium-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-trophy"/></svg>Podio</h2>
+            <ol id="podium" class="podium"></ol>
+            <h3 class="ranking-title">Clasificación</h3>
+            <ol id="ranking" class="ranking"></ol>
+          </section>
+
+          <div id="finish-actions" class="inline finish-actions">
+            <button type="button" id="play-again" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>Jugar otra partida</button>
+            <button type="button" id="leave-finished" class="btn btn-ghost"><svg class="icon" aria-hidden="true"><use href="#i-exit"/></svg>Salir de la sala</button>
+          </div>
+        </section>
       </div>
-      <div class="card reflection-card">
-        <h2>Para conversar</h2>
-        <p id="reflection-text" class="lead"></p>
-        <p id="reflection-question" class="reflection-question"></p>
+
+      <div class="game-side">
+        <section id="secret-panel" class="card-stage" aria-label="Tu carta secreta" hidden>
+          <div id="playing-card" class="playing-card" data-flipped="false">
+            <div class="card-face card-back" aria-hidden="true">
+              <svg class="icon card-back-icon"><use href="#i-mask"/></svg>
+              <span class="card-back-label">Farsante</span>
+            </div>
+            <div class="card-face card-front">
+              <div id="card-content" class="card-content"></div>
+            </div>
+          </div>
+          <button type="button" id="toggle-card" class="btn btn-secondary" aria-expanded="false" aria-controls="card-content"><svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg><span id="toggle-card-text">Ver mi carta</span></button>
+        </section>
+
+        <section id="table-panel" class="card table-panel" aria-labelledby="table-title" hidden>
+          <h2 id="table-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>Mesa</h2>
+          <ul id="table-list" class="table-list"></ul>
+        </section>
+
+        <section id="clues-panel" class="card" aria-labelledby="clues-panel-title" hidden>
+          <h2 id="clues-panel-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Pistas</h2>
+          <div id="clue-history" class="clue-history"></div>
+        </section>
+
+        <section id="host-controls" class="card host-controls" aria-label="Controles del anfitrión" hidden>
+          <button type="button" id="reset-game" class="btn btn-danger"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>Reiniciar partida</button>
+          <div id="reset-confirm" class="confirm-panel" hidden>
+            <p><strong>¿Reiniciar para todos?</strong> Todos volverán a la sala de espera. Se conservan los participantes, las palabras y la configuración; se borran los puntos.</p>
+            <div class="inline">
+              <button type="button" id="reset-confirm-yes" class="btn btn-danger">Confirmar reinicio</button>
+              <button type="button" id="reset-confirm-no" class="btn btn-secondary">Cancelar</button>
+            </div>
+          </div>
+        </section>
       </div>
-      <div class="inline finish-actions">
-        <button type="button" id="play-again" class="btn btn-primary" hidden>Jugar otra partida</button>
-        <button type="button" id="leave-finished" class="btn btn-secondary">Salir de la sala</button>
-      </div>
-    </section>
+    </div>
 
     <!-- Error definitivo de sala o sesión -->
     <section id="view-fatal" class="view" aria-labelledby="fatal-title" hidden>
       <h1 id="fatal-title" tabindex="-1">No pudimos abrir la sala</h1>
       <p id="fatal-message" class="lead"></p>
       <button type="button" id="fatal-home" class="btn btn-primary">Volver al inicio</button>
-    </section>
-
-    <!-- Paneles compartidos durante la partida -->
-    <section id="secret-panel" class="card secret-card" aria-label="Tu carta secreta" hidden>
-      <div id="card-content" class="card-content"></div>
-      <button type="button" id="toggle-card" class="btn btn-secondary" aria-expanded="false" aria-controls="card-content">Ver mi carta</button>
-    </section>
-
-    <section id="clues-panel" class="card" aria-labelledby="clues-panel-title" hidden>
-      <h2 id="clues-panel-title" class="card-title">Pistas</h2>
-      <div id="clue-history" class="clue-history"></div>
-    </section>
-
-    <section id="host-controls" class="card host-controls" aria-label="Controles del anfitrión" hidden>
-      <button type="button" id="reset-game" class="btn btn-danger">Reiniciar partida</button>
-      <div id="reset-confirm" class="confirm-panel" hidden>
-        <p><strong>¿Reiniciar para todos?</strong> Todos volverán a la sala de espera. Se conservan los participantes y las palabras.</p>
-        <div class="inline">
-          <button type="button" id="reset-confirm-yes" class="btn btn-danger">Confirmar reinicio</button>
-          <button type="button" id="reset-confirm-no" class="btn btn-secondary">Cancelar</button>
-        </div>
-      </div>
     </section>
 
     <noscript><p class="card">Farsante Scrum necesita JavaScript para funcionar.</p></noscript>

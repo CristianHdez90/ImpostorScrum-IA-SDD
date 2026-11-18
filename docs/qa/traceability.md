@@ -41,6 +41,11 @@
 | T-018 | Seguridad: XSS, acceso cruzado, no autorizados, logs | API/DOM | todas |
 | T-019 | UX/accesibilidad: teclado, foco, contraste, lector, móvil | Manual y automatizada | todas |
 | T-020 | Operación: salud, Redis real, QR, partida entre dispositivos, rollback | Smoke autorizado | 008 |
+| T-021 | RF-009.01–02: configuración al crear y en la sala de espera; valores inválidos y no anfitrión | Dominio/API/E2E | 009 |
+| T-022 | RF-009.03–07: serie de rondas, pausa de 20 s, «Continuar», puntos, podio con empates, serie cortada | Dominio/API/E2E | 009 |
+| T-023 | RF-009.08: reiniciar borra puntos y conserva la configuración | Dominio/E2E | 009 |
+| T-024 | RF-010.01: carta con giro 3D; la palabra no está en el DOM oculta; sin giro con movimiento reducido | E2E/CSS | 010 |
+| T-025 | RF-010.02–06: iconos, avatares, mesa con «En turno», barra «Ronda X de N» + «Vuelta k», podio | E2E/revisión visual | 010 |
 
 
 ## Evidencia consolidada (2026-11-18, sin Git)
@@ -51,5 +56,18 @@
 | API e integración | `tests/integration/*.test.js` (6) | Verde — total `npm test` **89/89** | Igual; memoria y **Redis simulado** |
 | E2E | `tests/e2e/{lobby,roles,game}.spec.js` | **46/46** ×2 | Entorno en la nube de la sesión, Chrome del sistema, escritorio + móvil emulado |
 | Lint / sintaxis / auditoría | ESLint, `node --check`, `npm audit` | Sin errores; 0 vulnerabilidades | Equipo de CristianDev |
+| CI de GitHub Actions | `.github/workflows/ci.yml`: lint, sintaxis, build, `npm test`, auditoría y E2E | **Verde; E2E 46/46** | Runner `ubuntu-latest` con Chromium de Playwright, 2026-11-18 (tras corregir una carrera en `game.spec.js`) |
 | Upstash real (T-016) | `scripts/validate-upstash.js` | **9/9** | ejecutado por CristianDev el 2026-11-18 15:49 (America/Bogota) con `npm run validate:upstash` contra `up-dragon-176459.upstash.io`, prefijo `farsante:pruebas:validacion-af51e155` |
-| No ejecutado | Vercel y smoke (T-020), lector de pantalla y contraste renderizado (T-019 parcial) | PENDIENTE | Requiere autorización o revisión humana |
+| Smoke en Production (T-020) | `/health` + partida real entre dispositivos con QR | **Correcto** | CristianDev, 2026-11-18 16:21–16:32, `impostor-scrum-ia-sdd.vercel.app` (APR-020, APR-021) |
+| No ejecutado | Lector de pantalla y contraste renderizado (T-019 parcial) | PENDIENTE | Requiere revisión humana |
+
+## Evidencia SPEC-FEAT-009 y SPEC-FEAT-010 (2026-11-18, sin Git, sin desplegar)
+
+| Suite | Archivos | Resultado | Entorno |
+|---|---|---|---|
+| Dominio, API e integración | `tests/unit/series.test.js` (nuevo), `tests/integration/api-full.test.js`, `tests/unit/room.test.js` (LIMITS con `settingsOptions`) | **97/97** | Entorno en la nube de la sesión, Node 22; memoria y Redis simulado |
+| E2E | `tests/e2e/series.spec.js` (nuevo) + `game.spec.js` (empate ahora comprueba `#lap-label` «Vuelta 2») | **50/50** (25 escritorio + 25 móvil; incluye «cada participante ve su nombre») | Entorno en la nube de la sesión, Chrome del sistema |
+| Lint | ESLint | Sin errores | Igual |
+| Revisión visual | Capturas de inicio, sala de espera, carta, pistas con la mesa, pausa entre rondas y podio (escritorio y móvil) | Revisadas; se corrigieron alineaciones, colores de avatar y espaciado | Igual |
+| Corrección encontrada | La portada mostraba «Retro», que es palabra del grupo Scrum: el impostor la veía en la página. Se cambió por «?» | Corregido | — |
+| No ejecutado | CI de GitHub, Preview/Production, lector de pantalla y contraste medido | PENDIENTE | Requiere a CristianDev y G6 |

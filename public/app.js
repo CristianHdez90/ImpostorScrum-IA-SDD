@@ -10,7 +10,7 @@
 
   /* Límites de formulario: deben coincidir con lib/config.js (tests/unit/room.test.js). */
   /* LIMITS:begin */
-  var LIMITS = Object.freeze({"codeAlphabet":"ABCDEFGHJKLMNPQRSTUVWXYZ","codeLength":5,"nameMin":2,"nameMax":26,"pollIntervalMs":1500,"clueMax":160,"guessMax":55,"wordMin":2,"wordMax":55,"wordsMin":3,"wordsMax":100});
+  var LIMITS = Object.freeze({"codeAlphabet":"ABCDEFGHJKLMNPQRSTUVWXYZ","codeLength":5,"nameMin":2,"nameMax":26,"pollIntervalMs":1500,"clueMax":160,"guessMax":55,"wordMin":2,"wordMax":55,"wordsMin":3,"wordsMax":100,"settingsOptions":{"rounds":[1,2,3,4,5,6,7,8,9,10],"turnSeconds":[30,45,60,90,120],"voteSeconds":[45,60,75,90,120]}});
   /* LIMITS:end */
 
   var STORAGE_KEY = 'farsante.currentRoom';
@@ -19,6 +19,12 @@
   var REQUEST_TIMEOUT_MS = 8000;
   var CODE_RE = new RegExp('^[' + LIMITS.codeAlphabet + ']{' + LIMITS.codeLength + '}$');
   var ACTIVE_PHASES = ['roles', 'clues', 'discussion', 'vote', 'reveal', 'guess'];
+  var PHASE_ICONS = {
+    roles: 'i-card', clues: 'i-chat', discussion: 'i-users', vote: 'i-vote',
+    reveal: 'i-eye', guess: 'i-question', finished: 'i-trophy',
+  };
+  var TURN_STATE_LABELS = { current: 'En turno', done: 'Pista dada', skipped: 'Sin pista', pending: 'Esperando' };
+  var AVATAR_TONES = 6;
   var PHASE_LABELS = {
     roles: 'Preparación', clues: 'Pistas', discussion: 'Debate', vote: 'Votación',
     reveal: 'Resultado', guess: 'Adivinanza', finished: 'Final',
@@ -67,6 +73,11 @@
     voteSelection: null,
     wordsSaved: null,
     wordsDirty: false,
+    settingsSaved: null,
+    settingsDirty: false,
+    tableKey: '',
+    podiumKey: '',
+    seriesAnnounced: null,
   };
 
   /* ---------- Utilidades ---------- */
@@ -196,7 +207,7 @@
     var inRoom = ROOM_VIEWS.indexOf(name) !== -1;
     $('connection').hidden = !inRoom;
     if (!inRoom) {
-      ['host-controls', 'secret-panel', 'clues-panel', 'phase-bar'].forEach(function (id) { $(id).hidden = true; });
+      ['host-controls', 'secret-panel', 'clues-panel', 'phase-bar', 'table-panel'].forEach(function (id) { $(id).hidden = true; });
       setFormAlert('action-error', null);
     }
     if (focusTitle !== false) {
@@ -277,7 +288,7 @@
     var name = validateNameField('create-name');
     if (!name) { $('create-name').focus(); return; }
     setBusy(form, true);
-    request('POST', '/api/create', { name: name, groupId: $('create-group').value })
+    request('POST', '/api/create', { name: name, groupId: $('create-group').value, settings: readSettings('create') })
       .then(function (r) {
         if (r.ok && r.data) {
           enterRoom(r.data);
@@ -333,6 +344,10 @@
     state.turnKey = null;
     state.wordsSaved = null;
     state.wordsDirty = false;
+    state.settingsSaved = null;
+    state.settingsDirty = false;
+    state.tableKey = '';
+    state.podiumKey = '';
     writeStorage(dto.code);
     if (window.history && window.history.replaceState) window.history.replaceState(null, '', '/?sala=' + dto.code);
     setConnection(true);
@@ -435,6 +450,7 @@
     $('waiting-host').hidden = isHost;
     start.disabled = !dto.canStart.ok || state.actionBusy;
     renderWordsEditor(dto);
+    renderSettings(dto);
   }
 
   function renderPlayers(players) {
@@ -446,6 +462,7 @@
     players.forEach(function (p) {
       var li = el('li', 'player');
       li.setAttribute('data-testid', 'player');
+      li.appendChild(avatar(p));
       li.appendChild(el('span', 'player-name', p.name));
       if (p.isHost) li.appendChild(badge('badge-host', '★', 'Anfitrión'));
       if (p.isMe) li.appendChild(badge('badge-me', '', 'Tú'));
@@ -470,6 +487,119 @@
     }
     span.appendChild(document.createTextNode(text));
     return span;
+  }
+
+  /* ---------- Configuración, avatares e iconos (SPEC-FEAT-009/010) ---------- */
+
+  var SETTING_FIELDS = [
+    { key: 'rounds', suffix: 'rounds' },
+    { key: 'turnSeconds', suffix: 'turn' },
+    { key: 'voteSeconds', suffix: 'vote' },
+  ];
+
+  function durationText(seconds) {
+    if (seconds < 60) return seconds + ' segundos';
+    var min = Math.floor(seconds / 60);
+    var rest = seconds % 60;
+    var text = min === 1 ? '1 minuto' : min + ' minutos';
+    return rest ? text + ' ' + rest + ' s' : text;
+  }
+
+  function settingOptionText(key, value) {
+    if (key === 'rounds') return value === 1 ? '1 ronda' : value + ' rondas';
+    return durationText(value);
+  }
+
+  function fillSettingSelects(prefix, values) {
+    SETTING_FIELDS.forEach(function (f) {
+      var select = $(prefix + '-' + f.suffix);
+      if (select.options.length === 0) {
+        LIMITS.settingsOptions[f.key].forEach(function (v) {
+          var option = el('option', null, settingOptionText(f.key, v));
+          option.value = String(v);
+          select.appendChild(option);
+        });
+      }
+      select.value = String(values[f.key]);
+    });
+  }
+
+  function readSettings(prefix) {
+    var out = {};
+    SETTING_FIELDS.forEach(function (f) { out[f.key] = Number($(prefix + '-' + f.suffix).value); });
+    return out;
+  }
+
+  function settingsSummary(settings) {
+    return settingOptionText('rounds', settings.rounds) + ', ' + durationText(settings.turnSeconds) + ' por turno y '
+      + durationText(settings.voteSeconds) + ' para votar.';
+  }
+
+  function renderSettings(dto) {
+    var settings = dto.settings;
+    if (!settings) return;
+    var summary = settingsSummary(settings);
+    if ($('settings-summary').textContent !== summary) $('settings-summary').textContent = summary;
+    var editable = dto.me.isHost && dto.phase === 'lobby';
+    $('settings-form').hidden = !editable;
+    if (!editable) { state.settingsSaved = null; state.settingsDirty = false; return; }
+    var key = JSON.stringify(settings);
+    // El borrador del anfitrión no se pisa con las actualizaciones.
+    if (state.settingsSaved === null || (key !== state.settingsSaved && !state.settingsDirty)) fillSettingSelects('settings', settings);
+    state.settingsSaved = key;
+  }
+
+  function setSettingsDirty(dirty) {
+    state.settingsDirty = dirty;
+    $('settings-draft').hidden = !dirty;
+  }
+
+  function submitSettings(event) {
+    event.preventDefault();
+    sendAction('settings', readSettings('settings'), {
+      button: $('settings-form').querySelector('button[type="submit"]'),
+      onSuccess: function (dto) {
+        setSettingsDirty(false);
+        state.settingsSaved = null;
+        renderSettings(dto);
+        announce('Configuración guardada: ' + settingsSummary(dto.settings));
+      },
+    });
+  }
+
+  function initials(name) {
+    var words = String(name).trim().split(/\s+/).filter(Boolean);
+    var first = function (w) {
+      if (segmenter) { var it = segmenter.segment(w)[Symbol.iterator]().next(); return it.done ? '' : it.value.segment; }
+      return w.charAt(0);
+    };
+    var text = words.length > 1 ? first(words[0]) + first(words[1]) : first(words[0] || '?');
+    return text.toLocaleUpperCase('es');
+  }
+
+  function avatar(player) {
+    var hash = 0;
+    var source = String(player.name); // mismo color en la mesa y en el podio
+    for (var i = 0; i < source.length; i += 1) hash = (hash * 31 + source.charCodeAt(i)) >>> 0;
+    var span = el('span', 'avatar avatar-' + (hash % AVATAR_TONES), initials(player.name));
+    span.setAttribute('aria-hidden', 'true');
+    return span;
+  }
+
+  function icon(id, className) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', 'icon' + (className ? ' ' + className : ''));
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    var use = document.createElementNS(ns, 'use');
+    use.setAttribute('href', '#' + id);
+    svg.appendChild(use);
+    return svg;
+  }
+
+  function pointsText(n) {
+    return n === 1 ? '1 punto' : n + ' puntos';
   }
 
   function renderRequirement(dto) {
@@ -574,21 +704,26 @@
     var content = $('card-content');
     content.textContent = '';
     if (me.role === 'impostor') {
+      content.appendChild(icon('i-mask', 'secret-icon'));
       content.appendChild(el('p', 'secret-impostor', 'Eres el impostor'));
       content.appendChild(el('p', 'secret-label', 'No conoces la palabra: escucha las pistas y disimula.'));
     } else {
       content.appendChild(el('p', 'secret-label', 'La palabra secreta es'));
       content.appendChild(el('p', 'secret-word', me.word));
     }
+    content.setAttribute('data-role', me.role);
     state.cardVisible = true;
-    $('toggle-card').textContent = 'Ocultar mi carta';
+    $('playing-card').setAttribute('data-flipped', 'true');
+    $('toggle-card-text').textContent = 'Ocultar mi carta';
     $('toggle-card').setAttribute('aria-expanded', 'true');
   }
 
   function hideCard() {
-    $('card-content').textContent = '';
+    $('card-content').textContent = ''; // la palabra no queda en el DOM mientras está oculta
+    $('card-content').removeAttribute('data-role');
     state.cardVisible = false;
-    $('toggle-card').textContent = 'Ver mi carta';
+    $('playing-card').setAttribute('data-flipped', 'false');
+    $('toggle-card-text').textContent = 'Ver mi carta';
     $('toggle-card').setAttribute('aria-expanded', 'false');
   }
 
@@ -599,7 +734,8 @@
     $('ready-count').textContent = 'Preparados: ' + dto.ready.count + ' de ' + dto.ready.total + '.';
     var button = $('ready-btn');
     button.disabled = dto.ready.mine || state.actionBusy;
-    button.textContent = dto.ready.mine ? 'Listo. Esperando a los demás…' : 'Ya vi mi rol, estoy listo';
+    var label = dto.ready.mine ? 'Listo. Esperando a los demás…' : 'Ya vi mi rol, estoy listo';
+    if (button.textContent !== label) { button.textContent = ''; button.appendChild(icon('i-check')); button.appendChild(document.createTextNode(label)); }
   }
 
   function renderClues(dto) {
@@ -611,7 +747,7 @@
     $('turn-info').textContent = turn.isMine
       ? 'Es tu turno (' + turn.index + ' de ' + turn.total + ').'
       : 'Turno de ' + turn.name + ' (' + turn.index + ' de ' + turn.total + ').';
-    $('turn-order').textContent = 'Orden de la ronda ' + dto.round + ': ' + turn.order.join(' → ');
+    $('turn-order').textContent = 'Orden de la vuelta ' + dto.round + ': ' + turn.order.join(' → ');
     if (key !== state.turnKey) {
       var changedWithinPhase = state.turnKey !== null && state.phase === 'clues';
       state.turnKey = key;
@@ -763,7 +899,100 @@
     renderTally('finished-tally', o.tally);
     $('reflection-text').textContent = r.reflection.text;
     $('reflection-question').textContent = r.reflection.question;
-    $('play-again').hidden = !dto.me.isHost;
+    renderSeriesEnd(dto);
+  }
+
+  /** Pausa entre rondas o podio final de la serie (RF-009.04, RF-009.06). */
+  function renderSeriesEnd(dto) {
+    var series = dto.series;
+    var complete = !series || series.complete;
+    $('finished-round').textContent = series ? 'Ronda ' + series.current + ' de ' + series.total : '';
+    $('finished-round').hidden = !series || series.total === 1;
+    var waiting = Boolean(dto.result && dto.result.hasNextRound);
+    $('next-round-area').hidden = !waiting;
+    $('next-game').hidden = !(waiting && dto.me.isHost);
+    $('podium-area').hidden = !(complete && series);
+    $('play-again').hidden = !(complete && dto.me.isHost);
+    if (complete && series) {
+      renderPodium(series.scores);
+      var key = dto.gameId;
+      if (state.seriesAnnounced !== key) {
+        state.seriesAnnounced = key;
+        var winners = series.scores.filter(function (s) { return s.rank === 1; }).map(function (s) { return s.name; });
+        announce('Terminó la serie. Primer puesto: ' + winners.join(' y ') + '.');
+      }
+    }
+  }
+
+  function renderPodium(scores) {
+    var key = JSON.stringify(scores);
+    if (key === state.podiumKey) return;
+    state.podiumKey = key;
+    var podium = $('podium');
+    podium.textContent = '';
+    var places = { 1: 'Primer puesto', 2: 'Segundo puesto', 3: 'Tercer puesto' };
+    [1, 2, 3].forEach(function (rank) {
+      var group = scores.filter(function (s) { return s.rank === rank; });
+      if (group.length === 0) return;
+      var li = el('li', 'podium-step podium-' + rank);
+      li.setAttribute('data-rank', String(rank));
+      li.appendChild(el('span', 'visually-hidden', places[rank] + ': '));
+      var names = el('div', 'podium-names');
+      group.forEach(function (s) {
+        var who = el('span', 'podium-name' + (s.isMe ? ' is-me' : ''));
+        who.appendChild(avatar({ name: s.name }));
+        who.appendChild(el('span', null, s.name + (s.isMe ? ' (tú)' : '')));
+        names.appendChild(who);
+      });
+      li.appendChild(names);
+      li.appendChild(el('span', 'podium-points', pointsText(group[0].points)));
+      var block = el('span', 'podium-block', String(rank));
+      block.setAttribute('aria-hidden', 'true');
+      li.appendChild(block);
+      podium.appendChild(li);
+    });
+    var ranking = $('ranking');
+    ranking.textContent = '';
+    scores.forEach(function (s) {
+      var li = el('li', 'ranking-row' + (s.isMe ? ' is-me' : ''));
+      li.appendChild(el('span', 'ranking-rank', s.rank + '.º'));
+      li.appendChild(el('span', 'ranking-name', s.name + (s.isMe ? ' (tú)' : '')));
+      li.appendChild(el('span', 'ranking-points', pointsText(s.points)));
+      ranking.appendChild(li);
+    });
+  }
+
+  /** Mesa: quién está en turno, quién ya dio pista y los puntos (RF-010.04). */
+  function renderTable(dto) {
+    var key = JSON.stringify(dto.players.map(function (p) { return [p.id, p.name, p.connected, p.points, p.turnState, p.isHost]; }));
+    if (key === state.tableKey) return;
+    state.tableKey = key;
+    var list = $('table-list');
+    list.textContent = '';
+    dto.players.forEach(function (p) {
+      var li = el('li', 'seat' + (p.turnState === 'current' ? ' is-current' : '') + (p.connected ? '' : ' is-offline'));
+      li.setAttribute('data-testid', 'seat');
+      if (p.turnState === 'current') li.setAttribute('aria-current', 'step');
+      li.appendChild(avatar(p));
+      var info = el('span', 'seat-info');
+      var name = el('span', 'seat-name', p.name);
+      if (p.isMe) name.appendChild(el('span', 'seat-me', ' (tú)'));
+      info.appendChild(name);
+      var meta = [];
+      if (p.isHost) meta.push('Anfitrión');
+      if (!p.connected) meta.push('Desconectado');
+      if (meta.length) info.appendChild(el('span', 'seat-meta', meta.join(', ')));
+      li.appendChild(info);
+      if (p.turnState) {
+        var status = el('span', 'seat-status seat-' + p.turnState);
+        if (p.turnState === 'current') status.appendChild(icon('i-clock'));
+        else if (p.turnState === 'done') status.appendChild(icon('i-check'));
+        status.appendChild(document.createTextNode(TURN_STATE_LABELS[p.turnState]));
+        li.appendChild(status);
+      }
+      if (typeof p.points === 'number') li.appendChild(el('span', 'seat-points', pointsText(p.points)));
+      list.appendChild(li);
+    });
   }
 
   /** Paneles compartidos: barra de fase, carta, pistas y controles del anfitrión. */
@@ -773,9 +1002,16 @@
     var active = ACTIVE_PHASES.indexOf(phase) !== -1;
     $('phase-bar').hidden = !(active || phase === 'finished');
     $('phase-label').textContent = PHASE_LABELS[phase] || '';
-    $('round-label').textContent = dto.round ? 'Ronda ' + dto.round : '';
+    if (PHASE_ICONS[phase]) $('phase-icon').setAttribute('href', '#' + PHASE_ICONS[phase]);
+    var series = dto.series;
+    $('round-label').textContent = series ? 'Ronda ' + series.current + ' de ' + series.total : '';
+    $('lap-label').textContent = dto.round && phase !== 'finished' ? 'Vuelta ' + dto.round : '';
+    $('lap-label').hidden = !$('lap-label').textContent;
     $('timer-wrap').hidden = !dto.deadline;
     $('secret-panel').hidden = !active;
+    $('table-panel').hidden = !(active || phase === 'finished');
+    if (!$('table-panel').hidden) renderTable(dto);
+    $('game-layout').setAttribute('data-active', active || phase === 'finished' ? 'true' : 'false');
     var showClues = ['clues', 'discussion', 'vote', 'reveal', 'guess', 'finished'].indexOf(phase) !== -1;
     $('clues-panel').hidden = !showClues;
     if (showClues) renderClueHistory(dto.clues);
@@ -794,7 +1030,7 @@
     var rounds = {};
     clues.forEach(function (c) { (rounds[c.round] = rounds[c.round] || []).push(c); });
     Object.keys(rounds).forEach(function (round) {
-      box.appendChild(el('h3', null, 'Ronda ' + round));
+      box.appendChild(el('h3', null, 'Vuelta ' + round));
       var list = el('ol');
       rounds[round].forEach(function (c) {
         var li = el('li');
@@ -814,6 +1050,8 @@
       var seconds = Math.ceil(remaining / 1000);
       var text = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
       if ($('phase-timer').textContent !== text) $('phase-timer').textContent = text;
+      if ($('next-round-timer').textContent !== text) $('next-round-timer').textContent = text;
+      $('phase-timer').classList.toggle('is-urgent', seconds <= 10 && seconds > 0);
       var dto = state.lastDto;
       if (dto && dto.turn && dto.turn.isMine && seconds <= 10 && seconds > 0 && state.warnedTurnKey !== state.turnKey) {
         state.warnedTurnKey = state.turnKey;
@@ -1062,6 +1300,10 @@
     bind('close-vote', 'click', function () { sendAction('closeVote', null, { button: $('close-vote') }); });
     bind('next-round', 'click', function () { sendAction('next', null, { button: $('next-round') }); });
     bind('guess-form', 'submit', submitGuess);
+    bind('next-game', 'click', function () { sendAction('nextGame', null, { button: $('next-game') }); });
+    bind('settings-form', 'submit', submitSettings);
+    bind('settings-form', 'change', function () { setSettingsDirty(true); });
+    fillSettingSelects('create', { rounds: 1, turnSeconds: 60, voteSeconds: 75 });
     bind('play-again', 'click', function () { sendAction('playAgain', null, { button: $('play-again') }); });
     bind('leave-lobby', 'click', function () { sendAction('leave', null, { button: $('leave-lobby') }); });
     bind('leave-finished', 'click', function () { sendAction('leave', null, { button: $('leave-finished') }); });

@@ -91,5 +91,6 @@ test('los límites del formulario en public/app.js coinciden con lib/config.js',
     wordMax: config.WORD_MAX,
     wordsMin: config.WORDS_MIN,
     wordsMax: config.WORDS_MAX,
+    settingsOptions: config.SETTINGS_OPTIONS,
   });
 });
