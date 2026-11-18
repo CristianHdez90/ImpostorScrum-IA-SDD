@@ -35,9 +35,14 @@
 
   <header class="topbar">
     <p class="brand"><svg class="icon brand-icon" aria-hidden="true"><use href="#i-mask"/></svg> Farsante Scrum</p>
+    <div class="topbar-right">
+    <p id="identity" class="identity" hidden>
+      <span id="identity-avatar"></span><span class="identity-text">Juegas como <strong id="identity-name"></strong></span>
+    </p>
     <p id="connection" class="connection" hidden>
       <span class="dot" aria-hidden="true"></span><span id="connection-text">Conectado</span>
     </p>
+    </div>
   </header>
 
   <!-- Región única para mensajes de estado (accessibility.md §3). -->
@@ -368,6 +373,7 @@
 
       <div class="game-side">
         <section id="secret-panel" class="card-stage" aria-label="Tu carta secreta" hidden>
+          <p class="card-owner">Carta de <strong id="card-owner-name"></strong></p>
           <div id="playing-card" class="playing-card" data-flipped="false">
             <div class="card-face card-back" aria-hidden="true">
               <svg class="icon card-back-icon"><use href="#i-mask"/></svg>

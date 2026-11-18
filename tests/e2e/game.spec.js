@@ -51,7 +51,10 @@ async function playToVote(page, browser, base = SSE_URL) {
     // En modo de consultas, cada página se entera del turno en ≤ 1,5 s: esperar a que alguna lo muestre.
     const pages = Object.values(players);
     const findCurrent = async () => {
-      for (let i = 0; i < pages.length; i += 1) if (await pages[i].locator('#clue-form').isVisible()) return i;
+      // Solo cuenta quien ya recibió ESTE turno: evita elegir a quien acaba de enviar y aún no se actualizó.
+      for (let i = 0; i < pages.length; i += 1) {
+        if ((await pages[i].locator('#turn-info').textContent()) === `Es tu turno (${turn} de 3).` && await pages[i].locator('#clue-form').isVisible()) return i;
+      }
       return -1;
     };
     await expect.poll(findCurrent, { timeout: 4_000, message: `alguien tiene el turno ${turn}` }).toBeGreaterThan(-1);
@@ -59,6 +62,7 @@ async function playToVote(page, browser, base = SSE_URL) {
     await expect(current.locator('#turn-info')).toHaveText(`Es tu turno (${turn} de 3).`);
     await current.getByLabel('Tu pista').fill(`una frase de prueba ${turn}`);
     await current.getByRole('button', { name: 'Enviar pista' }).click();
+    await expect(current.locator('#clue-form')).toBeHidden({ timeout: 4_000 }); // la respuesta ya se aplicó
   }
   for (const p of Object.values(players)) await expect(heading(p, 'Debate')).toBeVisible({ timeout: 3_000 });
   await expect(page.locator('#clue-history li')).toHaveCount(3);

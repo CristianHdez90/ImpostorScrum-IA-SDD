@@ -422,3 +422,20 @@ legend { font-weight: 700; margin-bottom: 0.6rem; padding: 0; }
 .next-round-card .requirement .icon { margin-right: 0.35rem; }
 .seat:not(:has(.seat-status)) .seat-points { grid-row: 1 / span 2; align-self: center; }
 .result-card .card-title { margin-top: 1.1rem; }
+
+/* Identidad del participante (cada uno ve su nombre) */
+.topbar-right { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; }
+.identity {
+  display: flex; align-items: center; gap: 0.5rem; margin: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+  padding: 0.25rem 0.85rem 0.25rem 0.3rem; max-width: 100%;
+}
+.identity .avatar { width: 1.9rem; height: 1.9rem; font-size: 0.75rem; }
+.identity-text { color: var(--muted); font-size: 0.92rem; overflow-wrap: anywhere; }
+.identity-text strong { color: var(--text); }
+.card-owner { margin: 0; color: var(--muted); }
+.card-owner strong { color: var(--ivory); }
+@media (max-width: 480px) {
+  .topbar { flex-wrap: wrap; }
+  .topbar-right { width: 100%; justify-content: space-between; }
+}

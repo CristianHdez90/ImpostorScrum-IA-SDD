@@ -31,7 +31,10 @@ async function playRound(players, host) {
   }
   for (let turn = 1; turn <= 3; turn += 1) {
     const findCurrent = async () => {
-      for (let i = 0; i < pages.length; i += 1) if (await pages[i].locator('#clue-form').isVisible()) return i;
+      // Solo cuenta quien ya recibió ESTE turno: evita elegir a quien acaba de enviar y aún no se actualizó.
+      for (let i = 0; i < pages.length; i += 1) {
+        if ((await pages[i].locator('#turn-info').textContent()) === `Es tu turno (${turn} de 3).` && await pages[i].locator('#clue-form').isVisible()) return i;
+      }
       return -1;
     };
     await expect.poll(findCurrent, { timeout: 4_000 }).toBeGreaterThan(-1);
@@ -41,6 +44,7 @@ async function playRound(players, host) {
     await expect(host.locator('[data-testid="seat"][aria-current="step"] .seat-status')).toHaveText('En turno');
     await current.getByLabel('Tu pista').fill(`pista de prueba ${turn}`);
     await current.getByRole('button', { name: 'Enviar pista' }).click();
+    await expect(current.locator('#clue-form')).toBeHidden({ timeout: 4_000 }); // la respuesta ya se aplicó
   }
   await expect(heading(host, 'Debate')).toBeVisible({ timeout: 4_000 });
   await host.getByRole('button', { name: 'Abrir votación' }).click();
@@ -112,6 +116,25 @@ test('configuración al crear y en la sala de espera; serie de 2 rondas con «Co
   for (const p of Object.values(players)) await expect(heading(p, 'Sala de espera')).toBeVisible({ timeout: 4_000 });
   // Se conserva la configuración (RF-009.08).
   await expect(page.locator('#settings-summary')).toContainText('2 rondas');
+  await luis.context.close();
+  await eva.context.close();
+});
+
+test('cada participante ve su propio nombre en la sala y en la partida', async ({ page, browser }) => {
+  await page.goto(`${BASE}/`);
+  await page.locator('#create-name').fill('Ana');
+  await page.getByRole('button', { name: 'Crear sala' }).click();
+  await expect(heading(page, 'Sala de espera')).toBeVisible();
+  await expect(page.locator('#identity')).toHaveText(/Juegas como Ana/);
+  const code = await page.locator('#room-code').getAttribute('data-code');
+  const luis = await join(browser, code, 'Luis');
+  const eva = await join(browser, code, 'Eva');
+  await expect(luis.page.locator('#identity')).toHaveText(/Juegas como Luis/);
+  await expect(page.getByRole('button', { name: 'Iniciar partida' })).toBeEnabled({ timeout: 4_000 });
+  await page.getByRole('button', { name: 'Iniciar partida' }).click();
+  await expect(heading(eva.page, 'Tu carta')).toBeVisible({ timeout: 4_000 });
+  await expect(eva.page.locator('#identity')).toHaveText(/Juegas como Eva/);
+  await expect(eva.page.locator('.card-owner')).toHaveText('Carta de Eva');
   await luis.context.close();
   await eva.context.close();
 });

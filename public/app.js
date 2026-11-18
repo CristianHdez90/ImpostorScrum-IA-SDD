@@ -206,6 +206,7 @@
     VIEWS.forEach(function (v) { $('view-' + v).hidden = v !== name; });
     var inRoom = ROOM_VIEWS.indexOf(name) !== -1;
     $('connection').hidden = !inRoom;
+    $('identity').hidden = !inRoom || !$('identity-name').textContent;
     if (!inRoom) {
       ['host-controls', 'secret-panel', 'clues-panel', 'phase-bar', 'table-panel'].forEach(function (id) { $(id).hidden = true; });
       setFormAlert('action-error', null);
@@ -377,11 +378,25 @@
     state.generation += 1;
     if (state.code) sessionSet(DRAFT_KEY + state.code, null);
     writeStorage(null);
+    $('identity-name').textContent = '';
     state.code = null;
     state.phase = null;
     if (window.history && window.history.replaceState) window.history.replaceState(null, '', '/');
     showView('home');
     announce(message);
+  }
+
+  /** Cada participante ve siempre con qué nombre juega. */
+  function renderIdentity(me) {
+    if (!me) return;
+    if ($('identity-name').textContent !== me.name) {
+      $('identity-name').textContent = me.name;
+      $('card-owner-name').textContent = me.name;
+      var holder = $('identity-avatar');
+      holder.textContent = '';
+      holder.appendChild(avatar({ name: me.name }));
+    }
+    $('identity').hidden = false;
   }
 
   function renderCode(code) {
@@ -402,6 +417,7 @@
     state.me = dto.me;
 
     if ($('room-code').getAttribute('data-code') !== dto.code) renderCode(dto.code);
+    renderIdentity(dto.me);
     var link = window.location.origin + dto.invite.path;
     if ($('invite-link').value !== link) $('invite-link').value = link;
     if (state.qrText !== link) drawQr(link, dto.code);
