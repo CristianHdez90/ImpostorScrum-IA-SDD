@@ -130,8 +130,13 @@ test('pista con la palabra secreta: se rechaza junto al campo y el turno sigue',
     await p.getByRole('button', { name: 'Ya vi mi rol, estoy listo' }).click();
   }
   await expect(heading(page, 'Ronda de pistas')).toBeVisible({ timeout: 3_000 });
-  let current = null;
-  for (const p of players) if (await p.locator('#clue-form').isVisible()) current = p;
+  // Cada página recibe el turno por su cuenta: esperar a que alguna muestre el formulario.
+  const findCurrent = async () => {
+    for (let i = 0; i < players.length; i += 1) if (await players[i].locator('#clue-form').isVisible()) return i;
+    return -1;
+  };
+  await expect.poll(findCurrent, { timeout: 4_000, message: 'alguien tiene el primer turno' }).toBeGreaterThan(-1);
+  const current = players[await findCurrent()];
   await current.getByRole('button', { name: 'Ver mi carta' }).click();
   const card = await current.locator('#card-content').innerText();
   if (!card.includes('Eres el impostor')) {
