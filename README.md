@@ -37,6 +37,11 @@ Al crear la sala (y después, en la sala de espera, solo el anfitrión) se elige
 - **Tiempo por turno:** 30, 45, 60, 90 o 120 s.
 - **Tiempo de votación:** 45, 60, 75, 90 o 120 s.
 
+## Recursos de terceros
+
+- **DM Sans** (fuente variable, subconjunto latino), licencia SIL OFL 1.1: `public/fonts/` (`DM-Sans-OFL.txt`). Se aloja en el propio sitio porque la CSP no permite fuentes externas.
+- **qrcode-generator** (MIT): se copia a `public/vendor/` al compilar.
+
 ## Pruebas
 
 ```bash

@@ -25,6 +25,7 @@ const CONTENT_TYPES = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
+  '.woff2': 'font/woff2',
 };
 
 function createLocalServer({ env = process.env, now = Date.now, log } = {}) {

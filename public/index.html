@@ -6,6 +6,7 @@
   <meta name="referrer" content="no-referrer">
   <title>Farsante Scrum</title>
   <link rel="icon" href="data:,">
+  <link rel="preload" href="/fonts/dm-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -30,12 +31,18 @@
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/><path d="M11 13l9-9"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
     <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
   </svg>
 
   <header class="topbar">
     <p class="brand"><svg class="icon brand-icon" aria-hidden="true"><use href="#i-mask"/></svg> Farsante Scrum</p>
     <div class="topbar-right">
+    <div id="room-chip" class="room-chip" hidden>
+      <span class="room-chip-text"><span class="room-chip-label">Código de sala</span><span id="room-chip-code" class="room-chip-code"></span></span>
+      <button type="button" id="share-room" class="btn btn-secondary btn-small"><svg class="icon" aria-hidden="true"><use href="#i-link"/></svg><span id="share-room-text">Compartir</span></button>
+    </div>
     <p id="identity" class="identity" hidden>
       <span id="identity-avatar"></span><span class="identity-text">Juegas como <strong id="identity-name"></strong></span>
     </p>
@@ -61,12 +68,18 @@
     <section id="view-home" class="view" aria-labelledby="home-title" hidden>
       <div class="hero">
         <div class="hero-cards" aria-hidden="true">
+          <span class="mini-card mini-card-front">?</span>
           <span class="mini-card mini-card-back"><svg class="icon"><use href="#i-mask"/></svg></span>
           <span class="mini-card mini-card-front">?</span>
-          <span class="mini-card mini-card-front">?</span>
         </div>
-        <h1 id="home-title" tabindex="-1">Farsante Scrum</h1>
-        <p class="lead">Todos reciben la misma palabra, menos uno: el farsante (impostor). Den pistas, debatan y voten para descubrirlo.</p>
+        <p class="hero-tag"><svg class="icon" aria-hidden="true"><use href="#i-mask"/></svg>El juego del impostor para retrospectivas</p>
+        <h1 id="home-title" class="hero-title" tabindex="-1">¿Quién está <span class="hero-accent">fingiendo</span>?</h1>
+        <p class="hero-lead">Todos conocen la palabra secreta… excepto uno. Den pistas, debatan y voten para descubrir al farsante.</p>
+        <ul class="hero-features" aria-label="Características">
+          <li><svg class="icon icon-mint" aria-hidden="true"><use href="#i-bolt"/></svg>En tiempo real</li>
+          <li><svg class="icon icon-violet" aria-hidden="true"><use href="#i-lock"/></svg>Votación secreta</li>
+          <li><svg class="icon icon-gold" aria-hidden="true"><use href="#i-trophy"/></svg>Rondas con podio</li>
+        </ul>
       </div>
 
       <div class="grid-2">
@@ -254,8 +267,15 @@
           <h1 id="roles-title" tabindex="-1">Tu carta</h1>
           <p class="alert alert-warning">Si compartes pantalla, deja de compartir antes de ver tu carta.</p>
           <div class="card roles-status">
-            <p id="ready-count" class="requirement"></p>
-            <button type="button" id="ready-btn" class="btn btn-primary"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Ya vi mi rol, estoy listo</button>
+            <p class="phase-intro">Abre tu carta en privado. Cuando la hayas leído, pulsa «Ya vi mi rol, estoy listo». La ronda empieza cuando todos confirmen o al acabar el tiempo de preparación.</p>
+            <div class="spotlight spotlight-center">
+              <p class="spotlight-label">Jugadores preparados</p>
+              <p class="meter-count" aria-hidden="true"><span id="ready-num">0</span><span class="meter-total"> / <span id="ready-total">0</span></span></p>
+              <p id="ready-count" class="visually-hidden"></p>
+              <p class="spotlight-meta">Inicio automático en <strong data-countdown></strong></p>
+            </div>
+            <button type="button" id="ready-btn" class="btn btn-primary btn-block" aria-describedby="ready-help"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Ya vi mi rol, estoy listo</button>
+            <p id="ready-help" class="help">Primero abre tu carta para confirmar.</p>
           </div>
         </section>
 
@@ -263,8 +283,16 @@
         <section id="view-clues" class="view" aria-labelledby="clues-title" hidden>
           <h1 id="clues-title" tabindex="-1">Ronda de pistas</h1>
           <div class="card">
+            <p class="phase-intro">El orden se sorteó. Cada participante escribe una palabra o frase cuando le toca, sin decir la palabra secreta. El turno avanza solo al acabar el tiempo.</p>
+            <ol id="turn-chips" class="turn-chips" aria-label="Orden de la vuelta"></ol>
+            <p id="turn-order" class="visually-hidden"></p>
+            <div class="spotlight" aria-hidden="true">
+              <p class="spotlight-label">Le toca a…</p>
+              <p id="spotlight-name" class="spotlight-name"></p>
+              <p class="spotlight-meta">Tiempo restante: <strong data-countdown></strong></p>
+            </div>
             <p id="turn-info" class="requirement turn-info"></p>
-            <p id="turn-order" class="help"></p>
+            <p id="clue-listen" class="listen-box" hidden>Escucha a los demás y piensa quién puede estar fingiendo.</p>
             <form id="clue-form" novalidate hidden>
               <div class="field">
                 <label for="clue-text">Tu pista</label>
@@ -282,7 +310,11 @@
         <section id="view-discussion" class="view" aria-labelledby="discussion-title" hidden>
           <h1 id="discussion-title" tabindex="-1">Debate</h1>
           <div class="card">
-            <p class="lead">Comenten las pistas y decidan quién creen que es el impostor.</p>
+            <p class="phase-intro">Comenten las pistas por videollamada o en persona: ¿quién dio una pista demasiado vaga? Al terminar el tiempo se abre la votación.</p>
+            <div class="spotlight spotlight-center">
+              <p class="spotlight-label">Debate restante</p>
+              <p class="countdown-big" data-countdown></p>
+            </div>
             <button type="button" id="open-voting" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-vote"/></svg>Abrir votación</button>
             <p id="discussion-wait" class="help">La votación se abre al terminar el tiempo o cuando el anfitrión la abra.</p>
           </div>
@@ -292,7 +324,14 @@
         <section id="view-vote" class="view" aria-labelledby="vote-title" hidden>
           <h1 id="vote-title" tabindex="-1">Votación secreta</h1>
           <div class="card">
-            <p id="vote-progress" class="requirement"></p>
+            <p class="phase-intro">Vota por la persona que crees que no conoce la palabra. El voto es secreto y único, y no puedes votar por ti.</p>
+            <div class="spotlight">
+              <p class="spotlight-label">Votos registrados</p>
+              <p class="meter-count" aria-hidden="true"><span id="vote-num">0</span><span class="meter-total"> / <span id="vote-total">0</span></span></p>
+              <div class="meter" aria-hidden="true"><span id="vote-bar"></span></div>
+              <p id="vote-progress" class="spotlight-meta"></p>
+              <p class="spotlight-meta">Se cierra cuando vota todo el equipo o al acabar el tiempo. Restan <strong data-countdown></strong>.</p>
+            </div>
             <form id="vote-form" novalidate>
               <fieldset>
                 <legend>¿Quién es el impostor?</legend>
@@ -313,8 +352,9 @@
           <h1 id="reveal-title" tabindex="-1">Nadie fue señalado</h1>
           <div class="card">
             <p id="reveal-reason" class="lead"></p>
+            <p class="help">Nadie sale esta vez y el impostor sigue oculto. Se sorteará un nuevo orden para otra vuelta de pistas, que empieza en <strong data-countdown></strong>.</p>
+            <h2 class="card-title result-subtitle"><svg class="icon" aria-hidden="true"><use href="#i-vote"/></svg>Resultado de la votación</h2>
             <ul id="reveal-tally" class="tally"></ul>
-            <p class="help">La identidad del impostor sigue oculta. Habrá otra vuelta de pistas en breve.</p>
             <button type="button" id="next-round" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Siguiente ronda</button>
           </div>
         </section>
@@ -369,6 +409,14 @@
             <button type="button" id="leave-finished" class="btn btn-ghost"><svg class="icon" aria-hidden="true"><use href="#i-exit"/></svg>Salir de la sala</button>
           </div>
         </section>
+
+        <section id="clues-panel" class="card clues-panel" aria-labelledby="clues-panel-title" hidden>
+          <div class="panel-head">
+            <h2 id="clues-panel-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Pistas de la vuelta</h2>
+            <span id="clue-count" class="count-badge"></span>
+          </div>
+          <div id="clue-history" class="clue-history"></div>
+        </section>
       </div>
 
       <div class="game-side">
@@ -377,23 +425,20 @@
           <div id="playing-card" class="playing-card" data-flipped="false">
             <div class="card-face card-back" aria-hidden="true">
               <svg class="icon card-back-icon"><use href="#i-mask"/></svg>
-              <span class="card-back-label">Farsante</span>
+              <span class="card-back-label">Solo para tus ojos</span>
+              <span class="card-back-dots">••••••••</span>
             </div>
             <div class="card-face card-front">
               <div id="card-content" class="card-content"></div>
             </div>
           </div>
+          <p id="card-hint" class="card-hint">Toca «Ver mi carta» cuando nadie esté mirando tu pantalla.</p>
           <button type="button" id="toggle-card" class="btn btn-secondary" aria-expanded="false" aria-controls="card-content"><svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg><span id="toggle-card-text">Ver mi carta</span></button>
         </section>
 
         <section id="table-panel" class="card table-panel" aria-labelledby="table-title" hidden>
           <h2 id="table-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>Mesa</h2>
           <ul id="table-list" class="table-list"></ul>
-        </section>
-
-        <section id="clues-panel" class="card" aria-labelledby="clues-panel-title" hidden>
-          <h2 id="clues-panel-title" class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Pistas</h2>
-          <div id="clue-history" class="clue-history"></div>
         </section>
 
         <section id="host-controls" class="card host-controls" aria-label="Controles del anfitrión" hidden>

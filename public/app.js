@@ -78,6 +78,7 @@
     tableKey: '',
     podiumKey: '',
     seriesAnnounced: null,
+    cardSeen: false, // la carta se abrió al menos una vez en esta partida
   };
 
   /* ---------- Utilidades ---------- */
@@ -208,7 +209,7 @@
     $('connection').hidden = !inRoom;
     $('identity').hidden = !inRoom || !$('identity-name').textContent;
     if (!inRoom) {
-      ['host-controls', 'secret-panel', 'clues-panel', 'phase-bar', 'table-panel'].forEach(function (id) { $(id).hidden = true; });
+      ['host-controls', 'secret-panel', 'clues-panel', 'phase-bar', 'table-panel', 'room-chip'].forEach(function (id) { $(id).hidden = true; });
       setFormAlert('action-error', null);
     }
     if (focusTitle !== false) {
@@ -425,6 +426,7 @@
 
     if (dto.gameId !== state.gameId) {
       state.gameId = dto.gameId;
+      state.cardSeen = false;
       hideCard(); // nueva partida o reinicio: la carta vuelve a estar oculta
       state.voteSelection = null;
     }
@@ -729,6 +731,10 @@
     }
     content.setAttribute('data-role', me.role);
     state.cardVisible = true;
+    $('card-hint').textContent = me.role === 'impostor'
+      ? 'Deduce la palabra por las pistas y pasa desapercibido.'
+      : 'Da pistas sin revelar la palabra al impostor.';
+    if (!state.cardSeen) { state.cardSeen = true; if (state.lastDto) renderRoles(state.lastDto); }
     $('playing-card').setAttribute('data-flipped', 'true');
     $('toggle-card-text').textContent = 'Ocultar mi carta';
     $('toggle-card').setAttribute('aria-expanded', 'true');
@@ -738,6 +744,7 @@
     $('card-content').textContent = ''; // la palabra no queda en el DOM mientras está oculta
     $('card-content').removeAttribute('data-role');
     state.cardVisible = false;
+    $('card-hint').textContent = 'Toca «Ver mi carta» cuando nadie esté mirando tu pantalla.';
     $('playing-card').setAttribute('data-flipped', 'false');
     $('toggle-card-text').textContent = 'Ver mi carta';
     $('toggle-card').setAttribute('aria-expanded', 'false');
@@ -748,10 +755,20 @@
   function renderRoles(dto) {
     if (!dto.ready) return;
     $('ready-count').textContent = 'Preparados: ' + dto.ready.count + ' de ' + dto.ready.total + '.';
+    $('ready-num').textContent = String(dto.ready.count);
+    $('ready-total').textContent = String(dto.ready.total);
     var button = $('ready-btn');
-    button.disabled = dto.ready.mine || state.actionBusy;
-    var label = dto.ready.mine ? 'Listo. Esperando a los demás…' : 'Ya vi mi rol, estoy listo';
-    if (button.textContent !== label) { button.textContent = ''; button.appendChild(icon('i-check')); button.appendChild(document.createTextNode(label)); }
+    var help = $('ready-help');
+    if (dto.ready.mine) {
+      button.hidden = true;
+      help.className = 'listen-box';
+      help.textContent = 'Ya estás listo. Esperando al resto del equipo…';
+    } else {
+      button.hidden = false;
+      button.disabled = !state.cardSeen || state.actionBusy > 0;
+      help.className = 'help';
+      help.textContent = state.cardSeen ? 'Cuando confirmes, espera a que el resto del equipo esté listo.' : 'Primero abre tu carta para confirmar.';
+    }
   }
 
   function renderClues(dto) {
@@ -759,6 +776,20 @@
     $('clue-form').hidden = !(turn && turn.isMine);
     $('skip-turn').hidden = !(turn && dto.me.isHost);
     if (!turn) { state.turnKey = null; return; }
+    $('spotlight-name').textContent = turn.isMine ? 'Tú' : turn.name;
+    $('clue-listen').hidden = turn.isMine;
+    var chips = $('turn-chips');
+    var chipsKey = JSON.stringify([turn.order, turn.index]);
+    if (chips.getAttribute('data-key') !== chipsKey) {
+      chips.setAttribute('data-key', chipsKey);
+      chips.textContent = '';
+      turn.order.forEach(function (name, i) {
+        var position = i + 1;
+        var li = el('li', 'turn-chip' + (position === turn.index ? ' is-current' : position < turn.index ? ' is-done' : ''), position + '. ' + name);
+        if (position === turn.index) li.setAttribute('aria-current', 'step');
+        chips.appendChild(li);
+      });
+    }
     var key = dto.gameId + ':' + dto.round + ':' + turn.index;
     $('turn-info').textContent = turn.isMine
       ? 'Es tu turno (' + turn.index + ' de ' + turn.total + ').'
@@ -809,6 +840,9 @@
     var vote = dto.vote;
     if (!vote) { state.voteKey = ''; return; }
     $('vote-progress').textContent = vote.participation + ' de ' + vote.eligible + ' votaron (se necesitan ' + vote.quorum + ' para señalar a alguien).';
+    $('vote-num').textContent = String(vote.participation);
+    $('vote-total').textContent = String(vote.eligible);
+    $('vote-bar').style.width = (vote.eligible ? Math.round((vote.participation / vote.eligible) * 100) : 0) + '%';
     var voted = vote.myVote !== null;
     $('vote-form').hidden = voted || !vote.canVote;
     $('vote-done').hidden = !voted;
@@ -826,7 +860,8 @@
         input.checked = state.voteSelection === c.id;
         input.addEventListener('change', function () { state.voteSelection = c.id; $('vote-form-error').hidden = true; });
         label.appendChild(input);
-        label.appendChild(el('span', null, c.name));
+        label.appendChild(avatar({ name: c.name }));
+        label.appendChild(el('span', 'vote-name', c.name));
         box.appendChild(label);
       });
     }
@@ -854,7 +889,19 @@
     var list = $(listId);
     list.textContent = '';
     if (!tally || tally.length === 0) { list.appendChild(el('li', null, 'Nadie votó.')); return; }
-    tally.forEach(function (t) { list.appendChild(el('li', null, t.name + ': ' + votesText(t.votes))); });
+    var max = tally.reduce(function (m, t) { return Math.max(m, t.votes); }, 0) || 1;
+    tally.forEach(function (t) {
+      var li = el('li', 'tally-row');
+      li.appendChild(el('span', 'tally-name', t.name));
+      var track = el('span', 'tally-track');
+      track.setAttribute('aria-hidden', 'true');
+      var bar = el('span', 'tally-bar');
+      bar.style.width = Math.round((t.votes / max) * 100) + '%';
+      track.appendChild(bar);
+      li.appendChild(track);
+      li.appendChild(el('span', 'tally-votes', votesText(t.votes)));
+      list.appendChild(li);
+    });
   }
 
   function renderReveal(dto) {
@@ -1031,6 +1078,17 @@
     var showClues = ['clues', 'discussion', 'vote', 'reveal', 'guess', 'finished'].indexOf(phase) !== -1;
     $('clues-panel').hidden = !showClues;
     if (showClues) renderClueHistory(dto.clues);
+    if (showClues) {
+      var lap = dto.round ? dto.clues.filter(function (c) { return c.round === dto.round; }).length : 0;
+      var total = dto.turn ? dto.turn.total : dto.players.length;
+      var badgeText = phase === 'finished' ? '' : lap + '/' + total;
+      $('clue-count').textContent = badgeText;
+      $('clue-count').hidden = !badgeText;
+      $('clue-count').setAttribute('aria-label', lap + ' de ' + total + ' pistas en esta vuelta');
+    }
+    var showChip = (active || phase === 'finished') && Boolean(dto.code);
+    $('room-chip').hidden = !showChip;
+    if ($('room-chip-code').textContent !== dto.code) $('room-chip-code').textContent = dto.code;
     var hostActive = dto.me.isHost && active;
     $('host-controls').hidden = !hostActive;
     if (!hostActive) $('reset-confirm').hidden = true;
@@ -1067,6 +1125,9 @@
       var text = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
       if ($('phase-timer').textContent !== text) $('phase-timer').textContent = text;
       if ($('next-round-timer').textContent !== text) $('next-round-timer').textContent = text;
+      var short = seconds + ' s';
+      var counters = document.querySelectorAll('[data-countdown]');
+      for (var c = 0; c < counters.length; c += 1) if (counters[c].textContent !== short) counters[c].textContent = short;
       $('phase-timer').classList.toggle('is-urgent', seconds <= 10 && seconds > 0);
       var dto = state.lastDto;
       if (dto && dto.turn && dto.turn.isMine && seconds <= 10 && seconds > 0 && state.warnedTurnKey !== state.turnKey) {
@@ -1171,6 +1232,26 @@
       feedback.hidden = false;
       announce('Enlace copiado.');
     }, failed);
+  }
+
+  /** Compartir la invitación durante la partida: menú del sistema o copia al portapapeles. */
+  function shareRoom() {
+    var url = $('invite-link').value || (window.location.origin + '/?sala=' + state.code);
+    var label = $('share-room-text');
+    var done = function (text) {
+      label.textContent = text;
+      announce(text === 'Copiado' ? 'Enlace de invitación copiado.' : text);
+      setTimeout(function () { label.textContent = 'Compartir'; }, 2000);
+    };
+    if (navigator.share) {
+      navigator.share({ title: 'Farsante Scrum', text: 'Únete a la sala ' + state.code, url: url }).catch(function () {});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done('Copiado'); }, function () { done('No se pudo copiar'); });
+    } else {
+      done('No se pudo copiar');
+    }
   }
 
   /* ---------- Sincronización (ADR-0003) ---------- */
@@ -1316,6 +1397,7 @@
     bind('close-vote', 'click', function () { sendAction('closeVote', null, { button: $('close-vote') }); });
     bind('next-round', 'click', function () { sendAction('next', null, { button: $('next-round') }); });
     bind('guess-form', 'submit', submitGuess);
+    bind('share-room', 'click', shareRoom);
     bind('next-game', 'click', function () { sendAction('nextGame', null, { button: $('next-game') }); });
     bind('settings-form', 'submit', submitSettings);
     bind('settings-form', 'change', function () { setSettingsDirty(true); });

@@ -131,6 +131,7 @@ test('pista con la palabra secreta: se rechaza junto al campo y el turno sigue',
   await page.getByRole('button', { name: 'Iniciar partida' }).click();
   for (const p of players) {
     await expect(heading(p, 'Tu carta')).toBeVisible({ timeout: 3_000 });
+    await p.getByRole('button', { name: 'Ver mi carta' }).click(); // hay que abrir la carta antes de confirmar
     await p.getByRole('button', { name: 'Ya vi mi rol, estoy listo' }).click();
   }
   await expect(heading(page, 'Ronda de pistas')).toBeVisible({ timeout: 3_000 });
@@ -141,7 +142,7 @@ test('pista con la palabra secreta: se rechaza junto al campo y el turno sigue',
   };
   await expect.poll(findCurrent, { timeout: 4_000, message: 'alguien tiene el primer turno' }).toBeGreaterThan(-1);
   const current = players[await findCurrent()];
-  await current.getByRole('button', { name: 'Ver mi carta' }).click();
+  // La carta ya quedó abierta durante la preparación.
   const card = await current.locator('#card-content').innerText();
   if (!card.includes('Eres el impostor')) {
     const word = card.replace('La palabra secreta es', '').trim();
@@ -184,7 +185,7 @@ test('salir: el anfitrión sale de la sala de espera y el control pasa al siguie
   const code = await createRoom(page, SSE_URL);
   const luis = await join(browser, SSE_URL, code, 'Luis');
   await page.getByRole('button', { name: 'Salir de la sala' }).click();
-  await expect(heading(page, 'Farsante Scrum')).toBeVisible();
+  await expect(heading(page, '¿Quién está fingiendo?')).toBeVisible();
   await expect(luis.page.getByTestId('player')).toHaveCount(1, { timeout: 3_000 });
   await expect(luis.page.getByRole('button', { name: 'Iniciar partida' })).toBeVisible();
   await expect(luis.page.getByTestId('player')).toContainText('Anfitrión');

@@ -153,7 +153,7 @@ test('RF-001.16 sesión inválida: se explica y se ofrece volver al inicio', asy
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('No pudimos abrir la sala');
   await expect(page.locator('#fatal-message')).toContainText('sesión');
   await page.getByRole('button', { name: 'Volver al inicio' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Farsante Scrum' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: '¿Quién está fingiendo?' })).toBeVisible();
 });
 
 test('RF-001.21 invitación de otra sala: aviso sin mezclar identidades y vuelta a la sala propia', async ({ page, browser }) => {
