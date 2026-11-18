@@ -1,0 +1,28 @@
+{
+  "name": "farsante-scrum",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Juego web multijugador para retrospectivas de equipo (SPEC-FEAT-001: salas e invitaciones).",
+  "license": "UNLICENSED",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build": "node scripts/build.js",
+    "lint": "eslint .",
+    "check": "node scripts/build.js --check-syntax",
+    "test": "node --test \"tests/unit/*.test.js\" \"tests/integration/*.test.js\"",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "qrcode-generator": "2.0.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.1",
+    "eslint": "10.15.0",
+    "jsqr": "1.4.0"
+  }
+}

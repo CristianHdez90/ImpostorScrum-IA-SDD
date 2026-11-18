@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Farsante Scrum</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <p class="brand"><span aria-hidden="true">🕵️</span> Farsante Scrum</p>
+    <p id="connection" class="connection" hidden>
+      <span class="dot" aria-hidden="true"></span><span id="connection-text">Conectado</span>
+    </p>
+  </header>
+
+  <!-- Región única para mensajes de estado (accessibility.md §3). -->
+  <div id="status" class="visually-hidden" role="status" aria-live="polite"></div>
+
+  <main id="main">
+    <p id="action-error" class="alert alert-error" role="alert" hidden></p>
+    <div id="phase-bar" class="phase-bar" hidden>
+      <span id="phase-label"></span>
+      <span id="round-label"></span>
+      <span id="timer-wrap">Tiempo: <span id="phase-timer" class="timer">00:00</span></span>
+    </div>
+
+    <!-- Inicio -->
+    <section id="view-home" class="view" aria-labelledby="home-title" hidden>
+      <h1 id="home-title" tabindex="-1">Farsante Scrum</h1>
+      <p class="lead">Todos reciben la misma palabra, menos uno: el farsante (impostor). Den pistas, debatan y voten para descubrirlo.</p>
+
+      <div class="grid-2">
+        <form id="create-form" class="card" novalidate>
+          <h2>Crear sala</h2>
+          <div class="field">
+            <label for="create-name">Tu nombre</label>
+            <input id="create-name" name="name" type="text" autocomplete="nickname" aria-describedby="create-name-help create-name-error" required>
+            <p id="create-name-help" class="help">Usa tu nombre de pila o un alias (2 a 26 caracteres).</p>
+            <p id="create-name-error" class="field-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="create-group">Grupo de palabras</label>
+            <select id="create-group" name="groupId">
+              <option value="scrum">Scrum y equipo</option>
+              <option value="comida">Comida</option>
+              <option value="musica">Música</option>
+              <option value="tecnologia">Tecnología e IA</option>
+            </select>
+            <p class="help">Podrás editar las palabras en la sala de espera.</p>
+          </div>
+          <p id="create-error" class="alert alert-error" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary">Crear sala</button>
+        </form>
+
+        <form id="join-form" class="card" novalidate>
+          <h2>Unirse a una sala</h2>
+          <div class="field">
+            <label for="join-code">Código de sala</label>
+            <input id="join-code" name="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" aria-describedby="join-code-help join-code-error" required>
+            <p id="join-code-help" class="help">Cinco letras, sin I ni O.</p>
+            <p id="join-code-error" class="field-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="join-name">Tu nombre</label>
+            <input id="join-name" name="name" type="text" autocomplete="nickname" aria-describedby="join-name-help join-name-error" required>
+            <p id="join-name-help" class="help">Usa tu nombre de pila o un alias (2 a 26 caracteres).</p>
+            <p id="join-name-error" class="field-error" hidden></p>
+          </div>
+          <p id="join-error" class="alert alert-error" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary">Unirme</button>
+        </form>
+      </div>
+      <p class="privacy">Sin registro. Guardamos tu nombre solo mientras exista la sala (hasta 6 horas sin actividad).</p>
+    </section>
+
+    <!-- Entrada por invitación -->
+    <section id="view-invite" class="view" aria-labelledby="invite-title" hidden>
+      <h1 id="invite-title" tabindex="-1">Te invitaron a la sala <span id="invite-code-label"></span></h1>
+      <p id="invite-other-room" class="alert alert-info" hidden>
+        Ya estás en la sala <strong id="invite-other-code"></strong>.
+        <button type="button" id="back-to-room" class="btn-link">Volver a la sala <span id="invite-other-code-2"></span></button>
+      </p>
+      <form id="invite-form" class="card" novalidate>
+        <div class="field">
+          <label for="invite-code">Código de sala</label>
+          <input id="invite-code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" aria-describedby="invite-code-error" required>
+          <p id="invite-code-error" class="field-error" hidden></p>
+        </div>
+        <div class="field">
+          <label for="invite-name">Tu nombre</label>
+          <input id="invite-name" name="name" type="text" autocomplete="nickname" aria-describedby="invite-name-help invite-name-error" required>
+          <p id="invite-name-help" class="help">Usa tu nombre de pila o un alias (2 a 26 caracteres).</p>
+          <p id="invite-name-error" class="field-error" hidden></p>
+        </div>
+        <p id="invite-error" class="alert alert-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary">Unirme al juego</button>
+      </form>
+      <p><a href="/" id="invite-home-link">Ir al inicio</a></p>
+    </section>
+
+    <!-- Sala de espera -->
+    <section id="view-lobby" class="view" aria-labelledby="lobby-title" hidden>
+      <h1 id="lobby-title" tabindex="-1">Sala de espera</h1>
+
+      <div class="lobby-layout">
+        <div class="lobby-main">
+          <div class="card">
+            <h2 class="card-title">Participantes <span id="player-count" class="count"></span></h2>
+            <ul id="player-list" class="player-list"></ul>
+            <p id="lobby-requirement" class="requirement"></p>
+            <div class="start-area">
+              <button type="button" id="start-game" class="btn btn-primary" aria-describedby="lobby-requirement" hidden>Iniciar partida</button>
+              <p id="waiting-host" class="help" hidden>Esperando a que el anfitrión inicie la partida.</p>
+            </div>
+          </div>
+
+          <div class="card" id="words-card">
+            <h2 class="card-title">Palabras</h2>
+            <p class="help">Grupo guardado: <strong id="words-label"></strong> (<span id="words-count"></span> palabras).</p>
+            <form id="words-form" novalidate hidden>
+              <div class="field">
+                <label for="words-group">Grupo</label>
+                <select id="words-group">
+                  <option value="scrum">Scrum y equipo</option>
+                  <option value="comida">Comida</option>
+                  <option value="musica">Música</option>
+                  <option value="tecnologia">Tecnología e IA</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="words-text">Palabras, una por línea</label>
+                <textarea id="words-text" rows="10" spellcheck="false" aria-describedby="words-help words-text-error"></textarea>
+                <p id="words-help" class="help">Entre 3 y 100 palabras distintas, de 2 a 55 caracteres cada una.</p>
+                <p id="words-text-error" class="field-error" hidden></p>
+              </div>
+              <p id="words-draft" class="draft-note" hidden>Cambios sin guardar</p>
+              <button type="submit" class="btn btn-secondary">Guardar palabras</button>
+            </form>
+          </div>
+          <button type="button" id="leave-lobby" class="btn btn-secondary">Salir de la sala</button>
+        </div>
+
+        <aside class="lobby-share card" aria-labelledby="share-title">
+          <h2 id="share-title" class="card-title">Invitar</h2>
+          <p class="code-label">Código de sala</p>
+          <p id="room-code" class="room-code"></p>
+          <div class="field">
+            <label for="invite-link">Enlace de invitación</label>
+            <div class="inline">
+              <input id="invite-link" type="text" readonly>
+              <button type="button" id="copy-link" class="btn btn-secondary">Copiar enlace</button>
+            </div>
+            <p id="copy-feedback" class="help" hidden></p>
+          </div>
+          <figure class="qr">
+            <canvas id="qr-canvas" role="img" aria-label="Código QR con el enlace de invitación"></canvas>
+            <figcaption>Escanea para unirte. También puedes usar el código o el enlace.</figcaption>
+          </figure>
+          <p id="qr-error" class="alert alert-info" hidden>No pudimos generar el QR. Comparte el enlace o el código.</p>
+          <p id="localhost-warning" class="alert alert-warning" hidden>
+            Estás usando «localhost»: otros dispositivos no podrán abrir este enlace ni el QR.
+            Abre la aplicación con la IP de tu red local (por ejemplo, http://192.168.1.20:3000) o con una URL pública HTTPS.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Roles -->
+    <section id="view-roles" class="view" aria-labelledby="roles-title" hidden>
+      <h1 id="roles-title" tabindex="-1">Tu carta</h1>
+      <p class="alert alert-warning">Si compartes pantalla, deja de compartir antes de ver tu carta.</p>
+      <div class="card roles-status">
+        <p id="ready-count" class="requirement"></p>
+        <button type="button" id="ready-btn" class="btn btn-primary">Ya vi mi rol, estoy listo</button>
+      </div>
+    </section>
+
+    <!-- Pistas -->
+    <section id="view-clues" class="view" aria-labelledby="clues-title" hidden>
+      <h1 id="clues-title" tabindex="-1">Ronda de pistas</h1>
+      <div class="card">
+        <p id="turn-info" class="requirement"></p>
+        <p id="turn-order" class="help"></p>
+        <form id="clue-form" novalidate hidden>
+          <div class="field">
+            <label for="clue-text">Tu pista</label>
+            <input id="clue-text" type="text" autocomplete="off" aria-describedby="clue-help clue-text-error">
+            <p id="clue-help" class="help">Palabra o frase, hasta 160 caracteres. <span id="clue-counter"></span></p>
+            <p id="clue-text-error" class="field-error" hidden></p>
+          </div>
+          <button type="submit" class="btn btn-primary">Enviar pista</button>
+        </form>
+        <button type="button" id="skip-turn" class="btn btn-secondary" hidden>Saltar turno</button>
+      </div>
+    </section>
+
+    <!-- Debate -->
+    <section id="view-discussion" class="view" aria-labelledby="discussion-title" hidden>
+      <h1 id="discussion-title" tabindex="-1">Debate</h1>
+      <div class="card">
+        <p class="lead">Comenten las pistas y decidan quién creen que es el impostor.</p>
+        <button type="button" id="open-voting" class="btn btn-primary" hidden>Abrir votación</button>
+        <p id="discussion-wait" class="help">La votación se abre al terminar el tiempo o cuando el anfitrión la abra.</p>
+      </div>
+    </section>
+
+    <!-- Votación -->
+    <section id="view-vote" class="view" aria-labelledby="vote-title" hidden>
+      <h1 id="vote-title" tabindex="-1">Votación secreta</h1>
+      <div class="card">
+        <p id="vote-progress" class="requirement"></p>
+        <form id="vote-form" novalidate>
+          <fieldset>
+            <legend>¿Quién es el impostor?</legend>
+            <div id="vote-options" class="vote-options"></div>
+          </fieldset>
+          <p id="vote-form-error" class="field-error" hidden></p>
+          <button type="submit" class="btn btn-primary">Confirmar voto</button>
+          <p class="help">Tu voto es secreto y no se puede cambiar.</p>
+        </form>
+        <p id="vote-done" class="alert alert-info" hidden>Tu voto quedó registrado. Es secreto: nadie más lo ve.</p>
+        <button type="button" id="close-vote" class="btn btn-secondary" aria-describedby="close-vote-help" hidden>Cerrar votación</button>
+        <p id="close-vote-help" class="help" hidden></p>
+      </div>
+    </section>
+
+    <!-- Resultado sin resolución -->
+    <section id="view-reveal" class="view" aria-labelledby="reveal-title" hidden>
+      <h1 id="reveal-title" tabindex="-1">Nadie fue señalado</h1>
+      <div class="card">
+        <p id="reveal-reason" class="lead"></p>
+        <ul id="reveal-tally" class="tally"></ul>
+        <p class="help">La identidad del impostor sigue oculta. La siguiente ronda de pistas empieza en breve.</p>
+        <button type="button" id="next-round" class="btn btn-primary" hidden>Siguiente ronda</button>
+      </div>
+    </section>
+
+    <!-- Adivinanza -->
+    <section id="view-guess" class="view" aria-labelledby="guess-title" hidden>
+      <h1 id="guess-title" tabindex="-1">¡Descubrieron al impostor!</h1>
+      <div class="card">
+        <p id="guess-info" class="lead"></p>
+        <form id="guess-form" novalidate hidden>
+          <div class="field">
+            <label for="guess-text">Tu respuesta</label>
+            <input id="guess-text" type="text" autocomplete="off" aria-describedby="guess-help guess-text-error">
+            <p id="guess-help" class="help">Si aciertas la palabra secreta, ganas.</p>
+            <p id="guess-text-error" class="field-error" hidden></p>
+          </div>
+          <button type="submit" class="btn btn-primary">Adivinar la palabra</button>
+        </form>
+        <p id="guess-wait" class="help" hidden></p>
+      </div>
+    </section>
+
+    <!-- Final -->
+    <section id="view-finished" class="view" aria-labelledby="finished-title" hidden>
+      <h1 id="finished-title" tabindex="-1">Fin de la partida</h1>
+      <div class="card result-card">
+        <div id="finished-summary" class="summary"></div>
+        <h2 class="card-title">Votos</h2>
+        <ul id="finished-tally" class="tally"></ul>
+      </div>
+      <div class="card reflection-card">
+        <h2>Para conversar</h2>
+        <p id="reflection-text" class="lead"></p>
+        <p id="reflection-question" class="reflection-question"></p>
+      </div>
+      <div class="inline finish-actions">
+        <button type="button" id="play-again" class="btn btn-primary" hidden>Jugar otra partida</button>
+        <button type="button" id="leave-finished" class="btn btn-secondary">Salir de la sala</button>
+      </div>
+    </section>
+
+    <!-- Error definitivo de sala o sesión -->
+    <section id="view-fatal" class="view" aria-labelledby="fatal-title" hidden>
+      <h1 id="fatal-title" tabindex="-1">No pudimos abrir la sala</h1>
+      <p id="fatal-message" class="lead"></p>
+      <button type="button" id="fatal-home" class="btn btn-primary">Volver al inicio</button>
+    </section>
+
+    <!-- Paneles compartidos durante la partida -->
+    <section id="secret-panel" class="card secret-card" aria-label="Tu carta secreta" hidden>
+      <div id="card-content" class="card-content"></div>
+      <button type="button" id="toggle-card" class="btn btn-secondary" aria-expanded="false" aria-controls="card-content">Ver mi carta</button>
+    </section>
+
+    <section id="clues-panel" class="card" aria-labelledby="clues-panel-title" hidden>
+      <h2 id="clues-panel-title" class="card-title">Pistas</h2>
+      <div id="clue-history" class="clue-history"></div>
+    </section>
+
+    <section id="host-controls" class="card host-controls" aria-label="Controles del anfitrión" hidden>
+      <button type="button" id="reset-game" class="btn btn-danger">Reiniciar partida</button>
+      <div id="reset-confirm" class="confirm-panel" hidden>
+        <p><strong>¿Reiniciar para todos?</strong> Todos volverán a la sala de espera. Se conservan los participantes y las palabras.</p>
+        <div class="inline">
+          <button type="button" id="reset-confirm-yes" class="btn btn-danger">Confirmar reinicio</button>
+          <button type="button" id="reset-confirm-no" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <noscript><p class="card">Farsante Scrum necesita JavaScript para funcionar.</p></noscript>
+  </main>
+
+  <script src="/vendor/qrcode.js"></script>
+  <script src="/word-themes.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
