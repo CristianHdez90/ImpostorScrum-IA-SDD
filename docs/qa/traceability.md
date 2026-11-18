@@ -51,4 +51,5 @@
 | API e integración | `tests/integration/*.test.js` (6) | Verde — total `npm test` **89/89** | Igual; memoria y **Redis simulado** |
 | E2E | `tests/e2e/{lobby,roles,game}.spec.js` | **46/46** ×2 | Entorno en la nube de la sesión, Chrome del sistema, escritorio + móvil emulado |
 | Lint / sintaxis / auditoría | ESLint, `node --check`, `npm audit` | Sin errores; 0 vulnerabilidades | Equipo de CristianDev |
-| No ejecutado | Upstash real (T-016), Vercel y smoke (T-020), lector de pantalla y contraste renderizado (T-019 parcial) | PENDIENTE | Requiere autorización o revisión humana |
+| Upstash real (T-016) | `scripts/validate-upstash.js` | **9/9** | ejecutado por CristianDev el 2026-11-18 15:49 (America/Bogota) con `npm run validate:upstash` contra `up-dragon-176459.upstash.io`, prefijo `farsante:pruebas:validacion-af51e155` |
+| No ejecutado | Vercel y smoke (T-020), lector de pantalla y contraste renderizado (T-019 parcial) | PENDIENTE | Requiere autorización o revisión humana |

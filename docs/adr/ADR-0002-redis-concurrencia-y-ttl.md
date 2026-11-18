@@ -49,5 +49,5 @@ return 1
 
 - (+) Reglas en un solo lenguaje; Lua mínimo y auditable.
 - (−) Bajo contención alta, reintentos; con 12 jugadores por sala se estima baja, a medir en T-016.
-- Riesgo: compatibilidad real de EVAL/EVALSHA en el plan contratado → **spike** en entorno autorizado (G5) antes de G6.
+- ~~Riesgo: compatibilidad real de EVAL en el plan contratado~~ → **verificado** (APR-019): ejecutado por CristianDev el 2026-11-18 15:49 (America/Bogota) con `npm run validate:upstash` contra `up-dragon-176459.upstash.io`, prefijo `farsante:pruebas:validacion-af51e155`; todos los scripts Lua y la concurrencia entre dos instancias funcionaron.
 - Riesgo: tamaño del documento (≤ 12 jugadores, ≤ 100 palabras, pistas de 160) estimado en decenas de KiB como máximo; verificar.

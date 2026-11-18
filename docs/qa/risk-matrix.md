@@ -5,8 +5,8 @@
 | ID | Tipo | Riesgo | P | I | Mitigación / validación | Prueba | Dueño |
 |---|---|---|---|---|---|---|---|
 | R-01 | Seguridad | Filtración de palabra o impostor en DTO, HTML o consola | M | A | Proyección por jugador; pruebas de privacidad por fase | T-004, T-012 | PENDIENTE |
-| R-02 | Datos | Pérdida de actualizaciones por concurrencia entre instancias | M | A | CAS con Lua (ADR-0002); pruebas con dos instancias y Redis real | T-016 | PENDIENTE |
-| R-03 | Proveedor | EVAL no disponible o con límites en el plan elegido | B | A | Spike en Upstash autorizado antes de G6 | T-016 | PENDIENTE |
+| R-02 | Datos | Pérdida de actualizaciones por concurrencia entre instancias | B | A | CAS con Lua; **verificado con Upstash real** (APR-019) | T-016 | CristianDev — mitigado |
+| R-03 | Proveedor | EVAL no disponible o con límites en el plan elegido | B | A | **EVAL verificado** en Upstash real (APR-019); límites del plan por revisar antes de producción | T-016 | CristianDev — mitigado |
 | R-04 | Funcional | Vencimientos no recuperados tras inactividad o recuperados desde «ahora» | M | M | `advance` desde `phaseEndsAt` original con tope de pasos | T-017 | PENDIENTE |
 | R-05 | Funcional | Petición tardía reactiva partida tras reinicio | M | M | `gameId` + versión; descarte en cliente | T-014 | PENDIENTE |
 | R-06 | UX | Revelación accidental al compartir pantalla | A | M | Carta oculta por defecto, advertencia | T-019 | PENDIENTE |

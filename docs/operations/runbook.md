@@ -9,6 +9,10 @@
 3. En Vercel → Project → Settings → Environment Variables, crear por entorno `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` y `REDIS_KEY_PREFIX`. **No** pegar valores en chats, tickets, capturas ni commits.
 4. Desplegar con autorización y comprobar `GET /health` → `200 {"status":"ok","store":"redis"}`.
 
+## 1b. Validar Upstash antes de desplegar
+
+Con el `.env` local configurado: `npm run validate:upstash`. Usa un prefijo propio, borra sus claves y no muestra el token. Resultado esperado: 9/9 (primera ejecución real: APR-019).
+
 ## 2. Diagnóstico
 
 | Síntoma | Causa probable | Comprobación | Acción |

@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "check": "node scripts/build.js --check-syntax",
     "test": "node --test \"tests/unit/*.test.js\" \"tests/integration/*.test.js\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "validate:upstash": "node --env-file=.env scripts/validate-upstash.js"
   },
   "dependencies": {
     "qrcode-generator": "2.0.4"
