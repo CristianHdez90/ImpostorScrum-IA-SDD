@@ -931,13 +931,13 @@
     sendAction('vote', { targetId: state.voteSelection }, { button: $('vote-form').querySelector('button[type="submit"]') });
   }
 
-  function renderTally(listId, tally) {
+  function renderTally(listId, tally, highlightName) {
     var list = $(listId);
     list.textContent = '';
     if (!tally || tally.length === 0) { list.appendChild(el('li', null, 'Nadie votó.')); return; }
     var max = tally.reduce(function (m, t) { return Math.max(m, t.votes); }, 0) || 1;
     tally.forEach(function (t) {
-      var li = el('li', 'tally-row');
+      var li = el('li', 'tally-row' + (highlightName && t.name === highlightName ? ' is-accused' : ''));
       li.appendChild(el('span', 'tally-name', t.name));
       var track = el('span', 'tally-track');
       track.setAttribute('aria-hidden', 'true');
@@ -987,25 +987,68 @@
     if (dto.phase !== 'finished' || !dto.result) return;
     var o = dto.outcome;
     var r = dto.result;
-    $('finished-title').textContent = r.winner === 'team' ? '¡Ganó el equipo!' : 'Ganó el impostor';
-    var summary = $('finished-summary');
-    summary.textContent = '';
-    var add = function (parts) {
-      var p = el('p');
+    var teamWon = r.winner === 'team';
+    $('finished-title').textContent = teamWon ? '¡Ganó el equipo!' : 'Ganó el impostor';
+    $('result-banner').setAttribute('data-winner', teamWon ? 'team' : 'impostor');
+    $('result-icon-use').setAttribute('href', teamWon ? '#i-trophy' : '#i-mask');
+    var lead;
+    if (o.kind === 'innocentAccused') lead = 'El equipo señaló a una persona inocente y el impostor se salvó.';
+    else if (r.guessCorrect) lead = 'Lo descubrieron, pero adivinó la palabra secreta.';
+    else lead = 'Descubrieron al impostor y no adivinó la palabra.';
+    $('result-lead').textContent = lead;
+    var iWon = dto.me.role === 'impostor' ? !teamWon : teamWon;
+    $('result-personal').textContent = iWon ? 'Ganaste esta ronda' : 'Esta vez perdiste';
+    $('result-personal').className = 'result-personal ' + (iWon ? 'is-win' : 'is-loss');
+
+    // Revelación: quién era y cuál era la palabra.
+    $('reveal-impostor-name').textContent = r.impostorName + (dto.me.role === 'impostor' ? ' (tú)' : '');
+    var holder = $('reveal-impostor-avatar');
+    holder.textContent = '';
+    holder.appendChild(avatar({ name: r.impostorName }));
+    $('reveal-word').textContent = r.word;
+
+    // Pasos: votación y, si lo descubrieron, la adivinanza.
+    var steps = $('result-steps');
+    steps.textContent = '';
+    var step = function (title, parts, verdict, good) {
+      var li = el('li', 'result-step');
+      var body = el('div', 'result-step-body');
+      body.appendChild(el('span', 'result-step-title', title));
+      var p = el('p', 'result-step-text');
       parts.forEach(function (part) { p.appendChild(typeof part === 'string' ? document.createTextNode(part) : part); });
-      summary.appendChild(p);
+      body.appendChild(p);
+      li.appendChild(body);
+      var tag = el('span', 'verdict ' + (good ? 'is-good' : 'is-bad'));
+      tag.appendChild(icon(good ? 'i-check' : 'i-x'));
+      tag.appendChild(document.createTextNode(verdict));
+      li.appendChild(tag);
+      steps.appendChild(li);
     };
+    var accused = el('strong', null, o.accusedName);
     if (o.kind === 'innocentAccused') {
-      add(['El equipo señaló a ', el('strong', null, o.accusedName), ' (' + votesText(o.votesFor) + '). Era inocente.']);
+      step('Votación', ['El equipo señaló a ', accused, ' con ' + votesText(o.votesFor) + '.'], 'Era inocente', false);
     } else {
-      add(['El equipo señaló a ', el('strong', null, o.accusedName), ' (' + votesText(o.votesFor) + ') y era el impostor.']);
-      if (r.guess === null) add(['No respondió a tiempo.']);
-      else if (r.guessCorrect) add(['Adivinó la palabra: «', el('strong', null, r.guess), '».']);
-      else add(['Respondió «' + r.guess + '», pero no era la palabra.']);
+      step('Votación', ['El equipo señaló a ', accused, ' con ' + votesText(o.votesFor) + '.'], 'Era el impostor', true);
+      if (r.guess === null) step('Adivinanza', ['No respondió a tiempo.'], 'Sin respuesta', true);
+      else if (r.guessCorrect) step('Adivinanza', ['Respondió «', el('strong', null, r.guess), '».'], 'Acertó', false);
+      else step('Adivinanza', ['Respondió «', el('strong', null, r.guess), '».'], 'No era la palabra', true);
     }
-    add(['El impostor era ', el('strong', null, r.impostorName), '.']);
-    add(['La palabra era ', el('strong', null, r.word), '.']);
-    renderTally('finished-tally', o.tally);
+    renderTally('finished-tally', o.tally, o.accusedName);
+
+    // Quién sumó punto en esta ronda (RF-009.05).
+    var box = $('round-points');
+    box.textContent = '';
+    box.hidden = !dto.series;
+    if (dto.series) {
+      var winners = dto.players.filter(function (p) { return (p.name === r.impostorName) !== teamWon; });
+      box.appendChild(el('span', 'round-points-label', 'Suman 1 punto:'));
+      winners.forEach(function (p) {
+        var chip = el('span', 'point-chip' + (p.isMe ? ' is-me' : ''));
+        chip.appendChild(avatar(p));
+        chip.appendChild(document.createTextNode(p.name + (p.isMe ? ' (tú)' : '')));
+        box.appendChild(chip);
+      });
+    }
     $('reflection-text').textContent = r.reflection.text;
     $('reflection-question').textContent = r.reflection.question;
     renderSeriesEnd(dto);

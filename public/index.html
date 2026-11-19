@@ -31,6 +31,7 @@
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/><path d="M11 13l9-9"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
     <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
     <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
@@ -380,21 +381,42 @@
         <!-- Final de ronda y podio -->
         <section id="view-finished" class="view" aria-labelledby="finished-title" hidden>
           <p id="finished-round" class="eyebrow-round"></p>
-          <h1 id="finished-title" tabindex="-1">Fin de la partida</h1>
+          <div id="result-banner" class="result-banner" data-winner="team">
+            <span class="result-icon" aria-hidden="true"><svg class="icon"><use id="result-icon-use" href="#i-trophy"/></svg></span>
+            <div class="result-heading">
+              <h1 id="finished-title" tabindex="-1">Fin de la partida</h1>
+              <p id="result-lead" class="result-lead"></p>
+            </div>
+            <span id="result-personal" class="result-personal"></span>
+          </div>
+
+          <div id="next-round-area" class="card next-round-card next-round-top" hidden>
+            <p class="requirement"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>La siguiente ronda empieza en <span id="next-round-timer" class="timer">00:20</span>.</p>
+            <button type="button" id="next-game" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Continuar</button>
+          </div>
+
+          <div class="reveal-grid">
+            <div class="reveal-card">
+              <p class="reveal-label">El impostor era</p>
+              <p class="reveal-person"><span id="reveal-impostor-avatar"></span><strong id="reveal-impostor-name"></strong></p>
+            </div>
+            <div class="reveal-card reveal-card-word">
+              <p class="reveal-label">La palabra era</p>
+              <p id="reveal-word" class="reveal-word"></p>
+            </div>
+          </div>
+
           <div class="card result-card">
-            <div id="finished-summary" class="summary"></div>
-            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-vote"/></svg>Votos</h2>
+            <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg>Cómo se decidió</h2>
+            <ol id="result-steps" class="result-steps"></ol>
+            <h3 class="result-subtitle-small">Votos</h3>
             <ul id="finished-tally" class="tally"></ul>
+            <div id="round-points" class="round-points" hidden></div>
           </div>
           <div class="card reflection-card">
             <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Para conversar</h2>
             <p id="reflection-text" class="lead"></p>
             <p id="reflection-question" class="reflection-question"></p>
-          </div>
-
-          <div id="next-round-area" class="card next-round-card" hidden>
-            <p class="requirement"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>La siguiente ronda empieza en <span id="next-round-timer" class="timer">00:20</span>.</p>
-            <button type="button" id="next-game" class="btn btn-primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Continuar</button>
           </div>
 
           <section id="podium-area" class="podium-area" aria-labelledby="podium-title" hidden>

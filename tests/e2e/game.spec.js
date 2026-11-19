@@ -94,8 +94,9 @@ test('partida completa: el equipo descubre al impostor, falla la adivinanza y se
 
   for (const p of Object.values(game.players)) {
     await expect(heading(p, '¡Ganó el equipo!')).toBeVisible({ timeout: 3_000 });
-    await expect(p.locator('#finished-summary')).toContainText(`La palabra era ${game.word}.`);
-    await expect(p.locator('#finished-summary')).toContainText(`El impostor era ${game.impostor}.`);
+    await expect(p.locator('#reveal-word')).toHaveText(game.word);
+    await expect(p.locator('#reveal-impostor-name')).toContainText(game.impostor);
+    await expect(p.locator('#result-steps')).toContainText('No era la palabra');
     await expect(p.locator('#reflection-question')).toHaveText(/\?$/);
   }
   await page.getByRole('button', { name: 'Jugar otra partida' }).click();
